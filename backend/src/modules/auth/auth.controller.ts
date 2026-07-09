@@ -52,10 +52,10 @@ const loginUser = asyncHandler(
     if (!email?.trim() || !password?.trim())
       throw new ApiError(400, "All fields are required");
 
-    const userExists = await User.findOne({ email }).select("+password")
+    const userExists = await User.findOne({ email }).select("+password");
     if (!userExists) throw new ApiError(404, "User not found. Plese Register");
 
-    const isMatch = await userExists.comparePassword(password)
+    const isMatch = await userExists.comparePassword(password);
     if (!isMatch) throw new ApiError(400, "Invalid Credentials");
 
     const accessToken = generateAccessToken(userExists);
@@ -72,6 +72,12 @@ const loginUser = asyncHandler(
       })
       .status(200)
       .json({ success: true, message: "User logged in successfully" });
+  },
+);
+
+const logoutUser = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    res.clearCookie("accessToken").clearCookie("refreshToken");
   },
 );
 
