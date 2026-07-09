@@ -26,16 +26,20 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-    password: {
-      type: String,
-      required: true,
-      select: false,
-    },
     provider: {
       type: String,
       enum: ["local", "google"],
       default: "local",
     },
+
+    password: {
+      type: String,
+      select: false,
+      required: function (): boolean {
+        return this.provider === "local";
+      },
+    },
+
     avatar: {
       type: String,
       default: "",
