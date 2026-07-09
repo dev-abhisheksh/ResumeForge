@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { RegisterBody } from "../../types/auth.types.js";
+import { LoginBody, RegisterBody } from "../../types/auth.types.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import User from "../user/user.model.js";
@@ -45,4 +45,34 @@ const registerUser = asyncHandler(
   },
 );
 
-export { registerUser };
+const loginUser = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { email, password } = req.body as LoginBody;
+
+    if (!email?.trim() || !password?.trim())
+      throw new ApiError(400, "All fields are required");
+
+    const userExists = await User.findOne({ email }).select("+password")
+    if (!userExists) throw new ApiError(404, "User not found. Plese Register");
+
+    const isMatch = await userExists.comparePassword(password)
+    if (!isMatch) throw new ApiError(400, "Invalid Credentials");
+
+    const accessToken = generateAccessToken(userExists);
+    const refreshToken = generateRefreshToken(userExists);
+
+    res
+      .cookie("accessToken", accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({ success: true, message: "User logged in successfully" });
+  },
+);
+
+export { registerUser, loginUser };
