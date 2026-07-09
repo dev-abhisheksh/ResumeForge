@@ -12,9 +12,11 @@
   "type": "module",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^26.1.1",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3"
@@ -24,6 +26,7 @@
     "bcrypt": "^6.0.0",
     "bullmq": "^5.79.3",
     "cloudinary": "^2.10.0",
+    "compression": "^1.8.1",
     "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
