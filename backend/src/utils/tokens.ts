@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 export const generateAccessToken = (user: IUser): string => {
   return jwt.sign(
     {
-      id: user._id,
+      _id: user._id,
       email: user.email,
     },
     process.env.ACCESS_TOKEN_SECRET!,
@@ -17,7 +17,7 @@ export const generateAccessToken = (user: IUser): string => {
 export const generateRefreshToken = (user: IUser): string => {
   return jwt.sign(
     {
-      id: user._id,
+      _id: user._id,
     },
     process.env.REFRESH_TOKEN_SECRET!,
     {
