@@ -201,4 +201,12 @@ const logoutUser = asyncHandler(
   },
 );
 
+const getMe = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const user = await User.findById(req.user?._id).select("-password");
+    if (!user) throw new ApiError(404, "User not found");
+    res.status(200).json({ success: true, user });
+  },
+);
+
 export { registerUser, loginUser, logoutUser, refreshTokenRotation };
