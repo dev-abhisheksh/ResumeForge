@@ -32,7 +32,6 @@ const registerUser = asyncHandler(
 
     if (!user) throw new ApiError(500, "Failed to register user");
 
-    const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
     const refreshTokenHash = hashToken(refreshToken);
 
@@ -45,6 +44,7 @@ const registerUser = asyncHandler(
     });
 
     if (!session) throw new ApiError(500, "Failed to establish session");
+    const accessToken = generateAccessToken(user, session._id.toString());
 
     res
       .cookie("accessToken", accessToken, {
@@ -81,7 +81,6 @@ const loginUser = asyncHandler(
     const isMatch = await userExists.comparePassword(password);
     if (!isMatch) throw new ApiError(400, "Invalid Credentials");
 
-    const accessToken = generateAccessToken(userExists);
     const refreshToken = generateRefreshToken(userExists);
     const refreshTokenHash = hashToken(refreshToken);
 
@@ -103,6 +102,7 @@ const loginUser = asyncHandler(
 
     if (!session) throw new ApiError(500, "Failed to establish session");
 
+    const accessToken = generateAccessToken(userExists, session._id.toString());
     res
       .cookie("accessToken", accessToken, {
         ...cookieOptions,
@@ -209,4 +209,4 @@ const getMe = asyncHandler(
   },
 );
 
-export { registerUser, loginUser, logoutUser, refreshTokenRotation };
+export { registerUser, loginUser, logoutUser, refreshTokenRotation, getMe };
