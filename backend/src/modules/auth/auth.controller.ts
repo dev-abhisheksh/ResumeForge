@@ -11,6 +11,7 @@ import { cookieOptions } from "../../utils/cookieOptions.js";
 import { hashToken } from "../../utils/hashToken.js";
 import { Session } from "../session/session.model.js";
 import jwt from "jsonwebtoken";
+import { success } from "zod";
 
 const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -181,7 +182,23 @@ const refreshTokenRotation = asyncHandler(
 );
 
 const logoutUser = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {},
+  async (req: Request, res: Response): Promise<void> => {
+    const refreshToken = req.cookies?.refreshToken;
+    if (refreshToken) {
+      const refreshTokenHash = hashToken(refreshToken);
+
+      await Session.findOneAndUpdate(
+        { refreshTokenHash, isRevoked: false },
+        { isRevoked: true, expiresAt: new Date() },
+      );
+    }
+
+    res
+      .clearCookie("accessToken", cookieOptions)
+      .clearCookie("refreshToken", cookieOptions)
+      .status(200)
+      .json({ success: true, message: "Logged out successfully" });
+  },
 );
 
-export { registerUser, loginUser };
+export { registerUser, loginUser, logoutUser, refreshTokenRotation };
