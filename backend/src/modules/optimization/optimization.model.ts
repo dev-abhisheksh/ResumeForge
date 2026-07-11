@@ -61,6 +61,10 @@ const optimizationSchema = new Schema<IOptimization>(
   { timestamps: true },
 );
 
+optimizationSchema.index({ user: 1 });
+optimizationSchema.index({ resume: 1 });
+optimizationSchema.index({ user: 1, createdAt: -1 });
+
 export const Optimization = model<IOptimization>(
   "Optimization",
   optimizationSchema,
