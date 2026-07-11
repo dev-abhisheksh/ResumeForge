@@ -33,6 +33,17 @@ const registerUser = asyncHandler(
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
+    const refreshTokenHash = hashToken(refreshToken);
+
+    const session = await Session.create({
+      user: user._id,
+      refreshTokenHash,
+      ip: req.ip ?? "Unknown",
+      userAgent: req.headers["user-agent"] ?? "Unknown",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    if (!session) throw new ApiError(500, "Failed to establish session");
 
     res
       .cookie("accessToken", accessToken, {
@@ -44,7 +55,15 @@ const registerUser = asyncHandler(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(201)
-      .json({ success: true, message: "User registered successfully" });
+      .json({
+        success: true,
+        message: "User registered successfully",
+        data: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+        },
+      });
   },
 );
 
@@ -143,9 +162,7 @@ const refreshTokenRotation = asyncHandler(
 );
 
 const logoutUser = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    res.clearCookie("accessToken").clearCookie("refreshToken");
-  },
+  async (req: Request, res: Response): Promise<void> => {},
 );
 
 export { registerUser, loginUser };
