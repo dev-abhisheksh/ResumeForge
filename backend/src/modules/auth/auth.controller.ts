@@ -82,6 +82,25 @@ const loginUser = asyncHandler(
 
     const accessToken = generateAccessToken(userExists);
     const refreshToken = generateRefreshToken(userExists);
+    const refreshTokenHash = hashToken(refreshToken);
+
+    await Session.updateMany(
+      { user: userExists._id, isRevoked: false },
+      {
+        isRevoked: true,
+        expiresAt: new Date(),
+      },
+    );
+
+    const session = await Session.create({
+      user: userExists._id,
+      refreshTokenHash,
+      ip: req.ip ?? "Unknown",
+      userAgent: req.headers["user-agent"] ?? "Unknown",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    if (!session) throw new ApiError(500, "Failed to establish session");
 
     res
       .cookie("accessToken", accessToken, {
