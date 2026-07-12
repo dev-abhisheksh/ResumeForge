@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import authRouter from "./modules/auth/auth.route.js";
 import resumeRouter from "./modules/resume/resume.route.js";
+import "./workers/resume.worker.js"
 
 const app = express();
 

@@ -8,6 +8,7 @@ export interface IResume extends Document {
   extractedText: string;
   createdAt: Date;
   updatedAt: Date;
+  status: "processing" | "completed" | "failed";
 }
 
 const resumeSchema = new Schema<IResume>(
@@ -21,6 +22,12 @@ const resumeSchema = new Schema<IResume>(
     title: {
       type: String,
       required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["processing", "completed", "failed"],
+      default: "processing",
     },
 
     fileUrl: {

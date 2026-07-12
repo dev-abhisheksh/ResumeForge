@@ -5,6 +5,7 @@ import { Response, Request } from "express";
 import { uploadToCloudinary } from "../../utils/cloudinary.js";
 import { Resume } from "./resume.model.js";
 import { extractText } from "../../utils/fileParser.js";
+import { resumeQueue } from "../../queues/resume.queue.js";
 
 const uploadResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -61,6 +62,12 @@ const uploadResume = asyncHandler(
       fileType,
       extractedText,
     });
+
+    const job = await resumeQueue.add("process-resume", {
+      resumeId: resume._id,
+    });
+
+    console.log("✅ Job Added:", job.id);
 
     res.status(201).json({
       success: true,
