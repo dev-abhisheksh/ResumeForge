@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import { Resume } from "../modules/resume/resume.model.js";
 import { redisConnection } from "../config/redis.js";
+import { parseResume } from "../services/ai/gemini.service.js";
 
 console.log("🚀 Resume Worker Loaded");
 
@@ -19,7 +20,9 @@ const resumeWorker = new Worker(
 
     console.log("Resume Title:", resume.title);
     console.log("Extracted Text:");
-    console.log(resume.extractedText);
+    const structuredResume = await parseResume(resume.extractedText);
+
+    console.log(structuredResume);
 
     // TODO:
     // Gemini
