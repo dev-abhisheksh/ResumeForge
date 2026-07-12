@@ -7,6 +7,7 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import authRouter from "./modules/auth/auth.route.js";
+import resumeRouter from "./modules/resume/resume.route.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(morgan("dev")); // Request logging
 
 //Routes
 app.use("/auth", authRouter);
+app.use("/resume", resumeRouter);
 
 app.use(notFound);
 app.use(errorHandler);
