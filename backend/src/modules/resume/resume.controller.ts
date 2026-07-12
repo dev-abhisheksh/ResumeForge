@@ -1,0 +1,73 @@
+import { UploadResumeBody } from "../../types/resume.types.js";
+import ApiError from "../../utils/ApiError.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import { Response, Request } from "express";
+import { uploadToCloudinary } from "../../utils/cloudinary.js";
+import { Resume } from "./resume.model.js";
+import { extractText } from "../../utils/fileParser.js";
+
+const uploadResume = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { title, text } = req.body as UploadResumeBody;
+
+    if (!title?.trim()) throw new ApiError(400, "Title is required");
+    if (!req.file && !text)
+      throw new ApiError(400, "Either a file or text input is required");
+    if (req.file && text)
+      throw new ApiError(400, "Provide either a file or text, not both");
+
+    const resumeCount = await Resume.countDocuments({ user: req.user!._id });
+    if (resumeCount >= 3)
+      throw new ApiError(
+        400,
+        "Maximum 3 resumes allowed. Delete one to upload a new resume.",
+      );
+
+    let fileUrl: string | undefined;
+    let fileType: "pdf" | "docx" | "latex" | "text" | undefined;
+    let extractedText: string;
+
+    if (req.file) {
+      const mimeMap: Record<string, "pdf" | "docx" | "latex"> = {
+        "application/pdf": "pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+          "docx",
+        "text/x-tex": "latex",
+      };
+
+      fileType = mimeMap[req.file.mimetype];
+      if (!fileType) throw new ApiError(400, "Unsupported file type");
+
+      const result = await uploadToCloudinary(
+        req.file.buffer,
+        req.file.originalname,
+      );
+      fileUrl = result.secure_url;
+
+      extractedText = await extractText(req.file.buffer, req.file.mimetype);
+    } else {
+      fileType = "text";
+      extractedText = text!;
+    }
+
+    if (!fileUrl) {
+      throw new ApiError(500, "File upload failed");
+    }
+
+    const resume = await Resume.create({
+      user: req.user!._id,
+      title,
+      fileUrl,
+      fileType,
+      extractedText,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Resume uploaded successfully",
+      data: resume,
+    });
+  },
+);
+
+export { uploadResume };

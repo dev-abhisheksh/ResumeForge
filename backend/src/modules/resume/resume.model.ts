@@ -3,7 +3,7 @@ import { Document, Schema, model, Types } from "mongoose";
 export interface IResume extends Document {
   user: Types.ObjectId;
   title: string;
-  fileUrl: string;
+  fileUrl?: string;
   fileType: "pdf" | "docx" | "latex" | "text";
   extractedText: string;
   createdAt: Date;
@@ -25,7 +25,7 @@ const resumeSchema = new Schema<IResume>(
 
     fileUrl: {
       type: String,
-      required: true,
+      required: false,
     },
 
     fileType: {
