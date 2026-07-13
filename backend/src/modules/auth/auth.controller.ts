@@ -156,7 +156,7 @@ const refreshTokenRotation = asyncHandler(
     if (session.expiresAt < new Date())
       throw new ApiError(401, "Session expired");
 
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(user, session._id.toString());
     const newRefreshToken = generateRefreshToken(user);
     const newRefreshTokenHash = hashToken(newRefreshToken);
 
