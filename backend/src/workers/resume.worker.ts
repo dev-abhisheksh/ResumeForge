@@ -2,6 +2,7 @@ import { Worker } from "bullmq";
 import { Resume } from "../modules/resume/resume.model.js";
 import { redisConnection } from "../config/redis.js";
 import { parseResume } from "../services/ai/gemini.service.js";
+import { calculateATS } from "../services/ats.service.js";
 
 console.log("🚀 Resume Worker Loaded");
 
@@ -18,17 +19,11 @@ const resumeWorker = new Worker(
       throw new Error("Resume not found");
     }
 
-    console.log("Resume Title:", resume.title);
-    console.log("Extracted Text:");
     const structuredResume = await parseResume(resume.extractedText);
 
-    console.log(structuredResume);
+    const atsResult = calculateATS(structuredResume, job.data.jobDescription);
 
-    // TODO:
-    // Gemini
-    // ATS Engine
-    // Groq
-
+    console.log(atsResult);
     resume.status = "completed";
     await resume.save();
 

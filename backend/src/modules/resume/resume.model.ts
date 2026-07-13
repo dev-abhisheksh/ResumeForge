@@ -9,6 +9,7 @@ export interface IResume extends Document {
   createdAt: Date;
   updatedAt: Date;
   status: "processing" | "completed" | "failed";
+  jobDescription: string;
 }
 
 const resumeSchema = new Schema<IResume>(
@@ -44,6 +45,11 @@ const resumeSchema = new Schema<IResume>(
     extractedText: {
       type: String,
       default: "",
+    },
+
+    jobDescription: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true },

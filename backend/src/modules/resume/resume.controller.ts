@@ -9,8 +9,9 @@ import { resumeQueue } from "../../queues/resume.queue.js";
 
 const uploadResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { title, text } = req.body as UploadResumeBody;
+    const { title, text, jobDescription } = req.body as UploadResumeBody;
 
+    if (!jobDescription?.trim()) throw new ApiError(400, "Job description is required")
     if (!title?.trim()) throw new ApiError(400, "Title is required");
     if (!req.file && !text)
       throw new ApiError(400, "Either a file or text input is required");
@@ -61,10 +62,12 @@ const uploadResume = asyncHandler(
       fileUrl,
       fileType,
       extractedText,
+      jobDescription
     });
 
     const job = await resumeQueue.add("process-resume", {
       resumeId: resume._id,
+      jobDescription,
     });
 
     console.log("✅ Job Added:", job.id);
