@@ -13,8 +13,11 @@ export const caculateExperienceRelevance = async (
   if (experience.length === 0) return { score: 0, reasoning: "no_experience" };
 
   const items = experience
-    .map((e) => `- ${e.title} at ${e.company}: ${e.description ?? ""}`)
-    .join("\n");
+    .map(
+      (e) =>
+        `- ${e.title} at ${e.company}\nResponsibilities:\n${(e.responsibilities ?? []).join("\n")}`,
+    )
+    .join("\n\n");
 
   const prompt = buildPrompt(items, jobDescription, "experience");
 

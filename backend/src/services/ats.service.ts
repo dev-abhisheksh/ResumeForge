@@ -1,5 +1,6 @@
 import { ParsedResume } from "../types/ai.types.js";
 import { containsKeyword } from "../utils/containsKeywords.js";
+import { normalizeKeyword } from "../utils/normalizeKeywords.js";
 import { caculateExperienceRelevance } from "./experience.service.js";
 
 import { calculateProjectRelevance } from "./project.service.js";
@@ -203,9 +204,9 @@ const calculateKeywordScore = (
   resumeSkills: string[],
   jobDescription: string,
 ): KeywordScore => {
-  // FIX: was .map() before — always returned same length as resumeSkills.
-  // .filter() keeps only the skills that actually matched.
-  const matched = resumeSkills.filter((skill) =>
+  const normalizedResumeSkills = resumeSkills.map(normalizeKeyword);
+
+  const matched = normalizedResumeSkills.filter((skill) =>
     containsKeyword(jobDescription, skill),
   );
 
@@ -215,19 +216,22 @@ const calculateKeywordScore = (
 
   const missingKeywords = jdKeywords.filter(
     (keyword) =>
-      !resumeSkills.some(
+      !normalizedResumeSkills.some(
         (skill) => skill.toLowerCase().trim() === keyword.toLowerCase().trim(),
       ),
   );
 
-  const score = Math.min(matched.length * 2, 30);
+  const score =
+    jdKeywords.length === 0
+      ? 0
+      : Math.min(Math.round((matched.length / jdKeywords.length) * 30), 30);
 
   return { score, missingKeywords, matchedKeywords: matched };
 };
 
-const calculateSkillsScore = (resumeSkills: string[]): number => {
+const calculateSkillsScore = (normalizedResumeSkills: string[]): number => {
   const uniqueSkills = new Set(
-    resumeSkills.map((skill) => skill.toLowerCase().trim()),
+    normalizedResumeSkills.map((skill) => skill.toLowerCase().trim()),
   );
 
   if (uniqueSkills.size >= 15) return 20;
@@ -254,8 +258,14 @@ export const calculateATS = async (
   resume: ParsedResume,
   jobDescription: string,
 ): Promise<ATSResult> => {
-  const keywordResult = calculateKeywordScore(resume.skills, jobDescription);
-  const skillsScore = calculateSkillsScore(resume.skills);
+  const normalizedResumeSkills = resume.skills.map(normalizeKeyword);
+
+  const keywordResult = calculateKeywordScore(
+    normalizedResumeSkills,
+    jobDescription,
+  );
+
+  const skillsScore = calculateSkillsScore(normalizedResumeSkills);
   const educationScore = calculateEducationScore(resume.education);
 
   const [experienceRelevance, projectRelevance] = await Promise.all([
@@ -263,12 +273,16 @@ export const calculateATS = async (
     calculateProjectRelevance(resume.projects, jobDescription),
   ]);
 
+  const experienceScore = Math.max(0, Math.min(experienceRelevance.score, 30));
+
+  const projectScore = Math.max(0, Math.min(projectRelevance.score, 30));
+
   const rawTotal =
     keywordResult.score +
     skillsScore +
-    experienceRelevance.score +
+    experienceScore +
     educationScore +
-    projectRelevance.score;
+    projectScore;
 
   // Max possible = 30 + 20 + 30 + 15 + 30 = 125, normalize to /100
   const overallScore = Math.round((rawTotal / 125) * 100);
@@ -277,9 +291,9 @@ export const calculateATS = async (
     overallScore,
     keywordScore: keywordResult.score,
     skillsScore,
-    experienceScore: experienceRelevance.score,
+    experienceScore,
+    projectScore,
     educationScore,
-    projectScore: projectRelevance.score,
     matchedKeywords: keywordResult.matchedKeywords,
     missingKeywords: keywordResult.missingKeywords,
     experienceReasoning: experienceRelevance.reasoning,

@@ -22,6 +22,7 @@ const resumeWorker = new Worker(
 
     try {
       const structuredResume = await parseResume(resume.extractedText);
+      // console.log(structuredResume)
 
       const atsResult = await calculateATS(structuredResume, job.data.jobDescription);
 

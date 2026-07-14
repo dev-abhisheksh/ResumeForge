@@ -50,11 +50,12 @@ const uploadResume = asyncHandler(
     } else {
       fileType = "text";
       extractedText = text!;
+      fileUrl = ""
     }
 
-    if (!fileUrl) {
-      throw new ApiError(500, "File upload failed");
-    }
+    // if (!fileUrl) {
+    //   throw new ApiError(500, "File upload failed");
+    // }
 
     const resume = await Resume.create({
       user: req.user!._id,
