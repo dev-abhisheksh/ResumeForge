@@ -183,6 +183,7 @@ const COMMON_KEYWORDS = [
 interface KeywordScore {
   score: number;
   missingKeywords: string[];
+  matchedKeywords: string[];
 }
 
 interface ATSResult {
@@ -192,6 +193,7 @@ interface ATSResult {
   experienceScore: number;
   educationScore: number;
   projectScore: number;
+  matchedKeywords: string[];
   missingKeywords: string[];
   experienceReasoning: string;
   projectReasoning: string;
@@ -220,7 +222,7 @@ const calculateKeywordScore = (
 
   const score = Math.min(matched.length * 2, 30);
 
-  return { score, missingKeywords };
+  return { score, missingKeywords, matchedKeywords: matched };
 };
 
 const calculateSkillsScore = (resumeSkills: string[]): number => {
@@ -278,6 +280,7 @@ export const calculateATS = async (
     experienceScore: experienceRelevance.score,
     educationScore,
     projectScore: projectRelevance.score,
+    matchedKeywords: keywordResult.matchedKeywords,
     missingKeywords: keywordResult.missingKeywords,
     experienceReasoning: experienceRelevance.reasoning,
     projectReasoning: projectRelevance.reasoning,
