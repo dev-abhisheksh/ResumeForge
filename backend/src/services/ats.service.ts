@@ -1,5 +1,8 @@
 import { ParsedResume } from "../types/ai.types.js";
 import { containsKeyword } from "../utils/containsKeywords.js";
+import { caculateExperienceRelevance } from "./experience.service.js";
+
+import { calculateProjectRelevance } from "./project.service.js";
 
 const COMMON_KEYWORDS = [
   // Languages
@@ -182,21 +185,36 @@ interface KeywordScore {
   missingKeywords: string[];
 }
 
+interface ATSResult {
+  overallScore: number;
+  keywordScore: number;
+  skillsScore: number;
+  experienceScore: number;
+  educationScore: number;
+  projectScore: number;
+  missingKeywords: string[];
+  experienceReasoning: string;
+  projectReasoning: string;
+}
+
 const calculateKeywordScore = (
   resumeSkills: string[],
   jobDescription: string,
 ): KeywordScore => {
-  const matched = resumeSkills.map((skill) =>
+  // FIX: was .map() before — always returned same length as resumeSkills.
+  // .filter() keeps only the skills that actually matched.
+  const matched = resumeSkills.filter((skill) =>
     containsKeyword(jobDescription, skill),
   );
 
   const jdKeywords = COMMON_KEYWORDS.filter((keyword) =>
     containsKeyword(jobDescription, keyword),
   );
+
   const missingKeywords = jdKeywords.filter(
     (keyword) =>
       !resumeSkills.some(
-        (skill) => skill.toLowerCase() === keyword.toLowerCase().trim(),
+        (skill) => skill.toLowerCase().trim() === keyword.toLowerCase().trim(),
       ),
   );
 
@@ -222,30 +240,46 @@ const calculateEducationScore = (
   const count = education.length;
   if (count >= 2) return 15;
   if (count >= 1) return 10;
-
   return 0;
 };
 
-const buildRelevancePrompt = (
-  items: string,
+/**
+ * Combines rule-based scores (keyword, skills, education) with
+ * AI-scored relevance (experience, projects) into one ATS result.
+ * Async because experience/project scoring calls Gemini.
+ */
+export const calculateATS = async (
+  resume: ParsedResume,
   jobDescription: string,
-  type: "experience" | "projects",
-): string =>
-  `
-You are an ATS relevance scorer. Score how relevant the candidate's ${type} is to the job description below, from 0-30.
+): Promise<ATSResult> => {
+  const keywordResult = calculateKeywordScore(resume.skills, jobDescription);
+  const skillsScore = calculateSkillsScore(resume.skills);
+  const educationScore = calculateEducationScore(resume.education);
 
-Job Description:
-${jobDescription}
+  const [experienceRelevance, projectRelevance] = await Promise.all([
+    caculateExperienceRelevance(resume.experience, jobDescription),
+    calculateProjectRelevance(resume.projects, jobDescription),
+  ]);
 
-Candidate ${type}:
-${items}
+  const rawTotal =
+    keywordResult.score +
+    skillsScore +
+    experienceRelevance.score +
+    educationScore +
+    projectRelevance.score;
 
-Scoring rules:
-- 25-30: Directly relevant tech stack + domain, strong match
-- 15-24: Partial overlap in skills/domain
-- 5-14: Weak/tangential relevance
-- 0-4: Not relevant
+  // Max possible = 30 + 20 + 30 + 15 + 30 = 125, normalize to /100
+  const overallScore = Math.round((rawTotal / 125) * 100);
 
-Respond ONLY with valid JSON, no markdown, no preamble:
-{"score": number, "reasoning": "one sentence"}
-`.trim();
+  return {
+    overallScore,
+    keywordScore: keywordResult.score,
+    skillsScore,
+    experienceScore: experienceRelevance.score,
+    educationScore,
+    projectScore: projectRelevance.score,
+    missingKeywords: keywordResult.missingKeywords,
+    experienceReasoning: experienceRelevance.reasoning,
+    projectReasoning: projectRelevance.reasoning,
+  };
+};
