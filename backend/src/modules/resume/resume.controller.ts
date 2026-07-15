@@ -53,10 +53,6 @@ const uploadResume = asyncHandler(
       fileUrl = ""
     }
 
-    // if (!fileUrl) {
-    //   throw new ApiError(500, "File upload failed");
-    // }
-
     const resume = await Resume.create({
       user: req.user!._id,
       title,
