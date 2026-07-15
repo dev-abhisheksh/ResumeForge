@@ -37,6 +37,7 @@ const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
     educationScore: { type: Number },
     projectScore: { type: Number },
     matchedKeywords: [{ type: String }],
+    missingKeywords: [{ type: String }],
     suggestions: [{ type: String }],
     optimizedResume: { type: String },
     structuredResume: { type: Schema.Types.Mixed, required: true },

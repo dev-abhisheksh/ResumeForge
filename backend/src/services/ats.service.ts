@@ -1,191 +1,5 @@
 import { ParsedResume } from "../types/ai.types.js";
-import { containsKeyword } from "../utils/containsKeywords.js";
-import { normalizeKeyword } from "../utils/normalizeKeywords.js";
-import { caculateExperienceRelevance } from "./experience.service.js";
-
-import { calculateProjectRelevance } from "./project.service.js";
-
-const COMMON_KEYWORDS = [
-  // Languages
-  "javascript",
-  "typescript",
-  "python",
-  "java",
-  "c++",
-  "c#",
-  "ruby",
-  "go",
-  "golang",
-  "rust",
-  "php",
-  "swift",
-  "kotlin",
-  "scala",
-  "r",
-  "sql",
-  "nosql",
-  "html",
-  "css",
-  "sass",
-  "less",
-  "bash",
-  "shell",
-
-  // Frontend
-  "react",
-  "angular",
-  "vue",
-  "svelte",
-  "next.js",
-  "nuxt",
-  "gatsby",
-  "redux",
-  "mobx",
-  "tailwind",
-  "bootstrap",
-  "webpack",
-  "vite",
-  "html5",
-  "css3",
-  "jquery",
-  "flutter",
-  "react native",
-  "electron",
-
-  // Backend & Databases
-  "node.js",
-  "nodejs",
-  "express",
-  "nestjs",
-  "django",
-  "flask",
-  "spring boot",
-  "laravel",
-  "rails",
-  "asp.net",
-  ".net",
-  "graphql",
-  "rest api",
-  "mongodb",
-  "postgresql",
-  "mysql",
-  "redis",
-  "elasticsearch",
-  "sqlite",
-  "mariadb",
-  "oracle",
-  "firebase",
-  "supabase",
-  "dynamodb",
-  "cassandra",
-
-  // DevOps & Cloud
-  "aws",
-  "amazon web services",
-  "azure",
-  "gcp",
-  "google cloud",
-  "docker",
-  "kubernetes",
-  "k8s",
-  "terraform",
-  "ansible",
-  "jenkins",
-  "github actions",
-  "gitlab ci",
-  "circleci",
-  "ci/cd",
-  "nginx",
-  "apache",
-  "linux",
-  "unix",
-  "cloud computing",
-  "serverless",
-
-  // Methodologies & Tools
-  "git",
-  "github",
-  "gitlab",
-  "bitbucket",
-  "jira",
-  "confluence",
-  "trello",
-  "slack",
-  "agile",
-  "scrum",
-  "kanban",
-  "waterfall",
-  "sdlc",
-  "testing",
-  "unit testing",
-  "integration testing",
-  "jest",
-  "cypress",
-  "mocha",
-  "chai",
-  "selenium",
-
-  // Concepts & Domains
-  "microservices",
-  "restful",
-  "api development",
-  "mvc",
-  "oop",
-  "functional programming",
-  "data structures",
-  "algorithms",
-  "system design",
-  "ui/ux",
-  "web design",
-  "responsive design",
-  "accessibility",
-  "seo",
-  "security",
-  "cryptography",
-  "blockchain",
-
-  // AI, Data & ML
-  "machine learning",
-  "deep learning",
-  "artificial intelligence",
-  "ai",
-  "data science",
-  "data analysis",
-  "big data",
-  "hadoop",
-  "spark",
-  "pandas",
-  "numpy",
-  "tensorflow",
-  "pytorch",
-  "keras",
-  "scikit-learn",
-  "nlp",
-  "computer vision",
-  "llm",
-  "prompt engineering",
-
-  // Soft Skills & Business
-  "project management",
-  "product management",
-  "leadership",
-  "communication",
-  "teamwork",
-  "collaboration",
-  "problem solving",
-  "critical thinking",
-  "time management",
-  "agile management",
-  "customer support",
-  "sales",
-  "marketing",
-];
-
-interface KeywordScore {
-  score: number;
-  missingKeywords: string[];
-  matchedKeywords: string[];
-}
+import { gemini } from "../config/gemini.js";
 
 interface ATSResult {
   overallScore: number;
@@ -200,103 +14,102 @@ interface ATSResult {
   projectReasoning: string;
 }
 
-const calculateKeywordScore = (
-  resumeSkills: string[],
-  jobDescription: string,
-): KeywordScore => {
-  const normalizedResumeSkills = resumeSkills.map(normalizeKeyword);
-
-  const matched = normalizedResumeSkills.filter((skill) =>
-    containsKeyword(jobDescription, skill),
-  );
-
-  const jdKeywords = COMMON_KEYWORDS.filter((keyword) =>
-    containsKeyword(jobDescription, keyword),
-  );
-
-  const missingKeywords = jdKeywords.filter(
-    (keyword) =>
-      !normalizedResumeSkills.some(
-        (skill) => skill.toLowerCase().trim() === keyword.toLowerCase().trim(),
-      ),
-  );
-
-  const score =
-    jdKeywords.length === 0
-      ? 0
-      : Math.min(Math.round((matched.length / jdKeywords.length) * 30), 30);
-
-  return { score, missingKeywords, matchedKeywords: matched };
-};
-
-const calculateSkillsScore = (normalizedResumeSkills: string[]): number => {
-  const uniqueSkills = new Set(
-    normalizedResumeSkills.map((skill) => skill.toLowerCase().trim()),
-  );
-
-  if (uniqueSkills.size >= 15) return 20;
-  if (uniqueSkills.size >= 10) return 15;
-  if (uniqueSkills.size >= 5) return 10;
-  return 5;
-};
-
-const calculateEducationScore = (
-  education: ParsedResume["education"],
-): number => {
-  const count = education.length;
-  if (count >= 2) return 15;
-  if (count >= 1) return 10;
-  return 0;
-};
-
 /**
- * Combines rule-based scores (keyword, skills, education) with
- * AI-scored relevance (experience, projects) into one ATS result.
- * Async because experience/project scoring calls Gemini.
+ * Evaluates a parsed resume against a job description using Gemini AI.
+ * This simplifies scoring by leveraging LLM semantic understanding instead of manual regex.
  */
 export const calculateATS = async (
   resume: ParsedResume,
   jobDescription: string,
 ): Promise<ATSResult> => {
-  const normalizedResumeSkills = resume.skills.map(normalizeKeyword);
+  const prompt = `
+You are an expert Applicant Tracking System (ATS) and HR assistant. Evaluate the provided candidate's resume against the Job Description and return a structured JSON scoring assessment.
 
-  const keywordResult = calculateKeywordScore(
-    normalizedResumeSkills,
-    jobDescription,
-  );
+Job Description:
+${jobDescription}
 
-  const skillsScore = calculateSkillsScore(normalizedResumeSkills);
-  const educationScore = calculateEducationScore(resume.education);
+Candidate Resume Data (JSON):
+${JSON.stringify(resume, null, 2)}
 
-  const [experienceRelevance, projectRelevance] = await Promise.all([
-    caculateExperienceRelevance(resume.experience, jobDescription),
-    calculateProjectRelevance(resume.projects, jobDescription),
-  ]);
+Scoring Guide (Total possible score of 125, which will be normalized to 100):
+1. keywordScore (0-30 points): Matches of key terms and technical skills between resume and job description.
+2. skillsScore (0-20 points): Depth, variety, and relevance of skills listed.
+3. experienceScore (0-30 points): Professional history relevance, roles, and responsibilities. Also provide a brief experienceReasoning.
+4. educationScore (0-15 points): Academic credentials and relevance.
+5. projectScore (0-30 points): Quality, tech stack, and scope of projects relative to the role. Also provide a brief projectReasoning.
 
-  const experienceScore = Math.max(0, Math.min(experienceRelevance.score, 30));
+Also extract:
+- matchedKeywords: List of key terms/skills matched.
+- missingKeywords: List of key terms/skills from the Job Description that are missing on the resume.
 
-  const projectScore = Math.max(0, Math.min(projectRelevance.score, 30));
+You must respond ONLY with a valid JSON object matching this schema:
+{
+  "keywordScore": number,
+  "skillsScore": number,
+  "experienceScore": number,
+  "experienceReasoning": "string explanation",
+  "educationScore": number,
+  "projectScore": number,
+  "projectReasoning": "string explanation",
+  "matchedKeywords": ["string"],
+  "missingKeywords": ["string"]
+}
+`;
 
-  const rawTotal =
-    keywordResult.score +
-    skillsScore +
-    experienceScore +
-    educationScore +
-    projectScore;
+  try {
+    const response = await gemini.models.generateContent({
+      model: "gemini-3.1-flash-lite",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
 
-  // Max possible = 30 + 20 + 30 + 15 + 30 = 125, normalize to /100
-  const overallScore = Math.round((rawTotal / 125) * 100);
+    const text = response.text;
+    if (!text) {
+      throw new Error("Empty response received from Gemini.");
+    }
 
-  return {
-    overallScore,
-    keywordScore: keywordResult.score,
-    skillsScore,
-    experienceScore,
-    projectScore,
-    educationScore,
-    matchedKeywords: keywordResult.matchedKeywords,
-    missingKeywords: keywordResult.missingKeywords,
-    experienceReasoning: experienceRelevance.reasoning,
-    projectReasoning: projectRelevance.reasoning,
-  };
+    const parsed = JSON.parse(text);
+
+    // Bound scores to their respective ranges
+    const keywordScore = Math.max(0, Math.min(30, Number(parsed.keywordScore) || 0));
+    const skillsScore = Math.max(0, Math.min(20, Number(parsed.skillsScore) || 0));
+    const experienceScore = Math.max(0, Math.min(30, Number(parsed.experienceScore) || 0));
+    const educationScore = Math.max(0, Math.min(15, Number(parsed.educationScore) || 0));
+    const projectScore = Math.max(0, Math.min(30, Number(parsed.projectScore) || 0));
+
+    // Calculate normalized overall score out of 100
+    const rawTotal = keywordScore + skillsScore + experienceScore + educationScore + projectScore;
+    const overallScore = Math.round((rawTotal / 125) * 100);
+
+    return {
+      overallScore,
+      keywordScore,
+      skillsScore,
+      experienceScore,
+      educationScore,
+      projectScore,
+      matchedKeywords: Array.isArray(parsed.matchedKeywords) ? parsed.matchedKeywords : [],
+      missingKeywords: Array.isArray(parsed.missingKeywords) ? parsed.missingKeywords : [],
+      experienceReasoning: parsed.experienceReasoning || "",
+      projectReasoning: parsed.projectReasoning || "",
+    };
+  } catch (error) {
+    console.error("Error calculating ATS score with Gemini:", error);
+    // Fallback/Default values in case of failure
+    return {
+      overallScore: 0,
+      keywordScore: 0,
+      skillsScore: 0,
+      experienceScore: 0,
+      educationScore: 0,
+      projectScore: 0,
+      matchedKeywords: [],
+      missingKeywords: [],
+      experienceReasoning: "AI evaluation failed.",
+      projectReasoning: "AI evaluation failed.",
+    };
+  }
 };
+
