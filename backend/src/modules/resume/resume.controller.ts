@@ -11,7 +11,8 @@ const uploadResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { title, text, jobDescription } = req.body as UploadResumeBody;
 
-    if (!jobDescription?.trim()) throw new ApiError(400, "Job description is required")
+    if (!jobDescription?.trim())
+      throw new ApiError(400, "Job description is required");
     if (!title?.trim()) throw new ApiError(400, "Title is required");
     if (!req.file && !text)
       throw new ApiError(400, "Either a file or text input is required");
@@ -50,7 +51,7 @@ const uploadResume = asyncHandler(
     } else {
       fileType = "text";
       extractedText = text!;
-      fileUrl = ""
+      fileUrl = "";
     }
 
     const resume = await Resume.create({
@@ -59,7 +60,7 @@ const uploadResume = asyncHandler(
       fileUrl,
       fileType,
       extractedText,
-      jobDescription
+      jobDescription,
     });
 
     const job = await resumeQueue.add("process-resume", {
@@ -77,4 +78,16 @@ const uploadResume = asyncHandler(
   },
 );
 
-export { uploadResume };
+const myResumes = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const resumes = await Resume.find({ user: req.user!._id });
+
+    res.status(200).json({
+      success: true,
+      count: resumes.length,
+      data: resumes,
+    });
+  },
+);
+
+export { uploadResume, myResumes };
