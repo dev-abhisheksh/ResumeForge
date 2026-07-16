@@ -21,6 +21,8 @@ export interface IResumeAnalysis extends Document {
   createdAt: Date;
   updatedAt: Date;
   structuredResume: ParsedResume;
+  experienceReasoning?: string;
+  projectReasoning?: string;
 }
 
 const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
@@ -45,6 +47,13 @@ const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
       type: String,
       enum: ["processing", "completed", "failed"],
       default: "processing",
+    },
+    experienceReasoning: {
+      type: String,
+    },
+
+    projectReasoning: {
+      type: String,
     },
   },
   { timestamps: true },
