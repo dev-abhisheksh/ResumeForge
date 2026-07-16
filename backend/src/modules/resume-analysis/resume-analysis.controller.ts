@@ -10,7 +10,7 @@ const getResumeRecommendationsAndGuide = asyncHandler(
     const { resumeId } = req.params;
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
 
-    const resumeAnalysis = await ResumeAnalysis.findById(resumeId);
+    const resumeAnalysis = await ResumeAnalysis.findOne({resume: resumeId});
     if (!resumeAnalysis) throw new ApiError(404, "Resume Analysis not found");
 
     const atsResult: ATSResult = {
