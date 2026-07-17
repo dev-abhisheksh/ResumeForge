@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ResumeForge - ATS Migration Documentation and Interactive Simulator">
+  <title>ResumeForge: AI ATS Scoring Migration</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- PrismJS for Syntax Highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  
+  <style>
+    :root[data-theme="dark"] {
+      --bg-gradient: linear-gradient(135deg, #070a13 0%, #0c0f1d 50%, #150b24 100%);
+      --card-bg: rgba(18, 22, 41, 0.7);
+      --card-border: rgba(255, 255, 255, 0.06);
+      --card-border-glow: rgba(139, 92, 246, 0.15);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-primary: #8b5cf6;
+      --accent-primary-glow: rgba(139, 92, 246, 0.4);
+      --accent-secondary: #06b6d4;
+      --accent-secondary-glow: rgba(6, 182, 212, 0.4);
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --code-bg: #090d16;
+      --header-bg: rgba(7, 10, 19, 0.8);
+      --badge-bg: rgba(139, 92, 246, 0.15);
+      --badge-text: #c084fc;
+      --toggle-bg: #1e293b;
+    }
+
+    :root[data-theme="light"] {
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(0, 0, 0, 0.06);
+      --card-border-glow: rgba(139, 92, 246, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #7c3aed;
+      --accent-primary-glow: rgba(124, 58, 237, 0.2);
+      --accent-secondary: #0891b2;
+      --accent-secondary-glow: rgba(8, 145, 178, 0.2);
+      --success: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --code-bg: #f8fafc;
+      --header-bg: rgba(248, 250, 252, 0.85);
+      --badge-bg: rgba(124, 58, 237, 0.08);
+      --badge-text: #7c3aed;
+      --toggle-bg: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-primary);
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-secondary);
+    }
+
+    /* Container & Layout */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* Header styling */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 0;
+    }
+
+    .header-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .theme-toggle-btn {
+      background: var(--toggle-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      padding: 0.6rem;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.1);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-primary-glow);
+    }
+
+    /* Hero section */
+    .hero {
+      text-align: center;
+      padding: 4rem 0 3rem 0;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* Grid cards */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 3fr 2fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0.8;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-title i {
+      color: var(--accent-primary);
+    }
+
+    /* Timeline & Summary */
+    .change-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .meta-icon {
+      background: var(--badge-bg);
+      color: var(--accent-primary);
+      padding: 0.6rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.2rem;
+    }
+
+    .meta-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .meta-content p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Cleanup list */
+    .cleanup-list {
+      list-style: none;
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .cleanup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 0.75rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .cleanup-name {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cleanup-name del {
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .status-badge.deleted {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .status-badge.modified {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    /* Code diff comparison tabs */
+    .tab-container {
+      margin-top: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--badge-bg);
+      color: var(--accent-primary);
+    }
+
+    .diff-toggle {
+      display: inline-flex;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--card-border);
+      padding: 0.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .diff-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .diff-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+    }
+
+    .code-wrapper {
+      max-height: 480px;
+      overflow-y: auto;
+      border-radius: 0.75rem;
+      border: 1px solid var(--card-border);
+      background: var(--code-bg);
+      position: relative;
+    }
+
+    .code-wrapper pre {
+      margin: 0;
+      padding: 1rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem !important;
+    }
+
+    /* Simulator Styling */
+    .sim-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .input-group select, .input-group textarea {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 0.8rem;
+      color: var(--text-primary);
+      font-family: inherit;
+      resize: vertical;
+      font-size: 0.9rem;
+    }
+
+    .input-group select:focus, .input-group textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 8px var(--accent-primary-glow);
+    }
+
+    .preset-btns {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .preset-btn:hover {
+      background: var(--badge-bg);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px var(--accent-primary-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--accent-primary-glow);
+    }
+
+    /* Simulation Output */
+    .sim-results {
+      margin-top: 1rem;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 1rem;
+      border: 1px solid var(--card-border);
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .score-summary {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .gauge-wrapper {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 8;
+    }
+
+    .gauge-fill {
+      fill: none;
+      stroke: url(#gauge-gradient);
+      stroke-width: 8;
+      stroke-dasharray: 251.2;
+      stroke-dashoffset: 251.2;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease-out;
+    }
+
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .score-details h4 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .score-details p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 480px) {
+      .breakdown-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .breakdown-item {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .breakdown-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      width: 0%;
+      transition: width 1s ease-out;
+      border-radius: 3px;
+    }
+
+    .reasoning-box {
+      background: rgba(139, 92, 246, 0.05);
+      border: 1px solid rgba(139, 92, 246, 0.15);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .reasoning-box strong {
+      display: block;
+      color: var(--accent-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .keyword-pill-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .keyword-pill {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+    }
+
+    .keyword-pill.matched {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .keyword-pill.missing {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 5rem;
+      padding: 2rem 0;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Simulation Loading State */
+    .loader {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(139, 92, 246, 0.2);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <i data-lucide="cpu"></i>
+        <span>ResumeForge</span>
+      </div>
+      <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle dark/light theme">
+        <i data-lucide="sun" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-badge">
+        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+        <span>ATS Engine Upgrade</span>
+      </div>
+      <h1>Migrating ATS Scoring to <span>Gemini AI</span></h1>
+      <p>Replacing manual rule-based heuristics with full semantic analysis using Google Gemini. Simpler code, greater accuracy, and enhanced persistence.</p>
+    </section>
+
+    <!-- Overview Grid -->
+    <section class="dashboard-grid">
+      
+      <!-- Left Column: Context & Details -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <div class="card">
+          <h2 class="card-title">
+            <i data-lucide="arrow-right-left"></i>
+            Migration Overview
+          </h2>
+          <div class="change-meta">
+            <div class="meta-item">
+              <div class="meta-icon"><i data-lucide="alert-triangle"></i></div>
+              <div class="meta-content">
+                <h3>The Challenge</h3>
+                <p>The previous ATS scoring function was failing. It relied on a fragile mixture of keyword matching algorithms, custom regex normalizations, static scoring structures, and separate concurrent Gemini API calls for work experience and project evaluation. This approach suffered from parse errors, mathematical inconsistencies, and high latency due to multiple LLM roundtrips.</p>
+              </div>
+            </div>
+            
+            <div class="meta-item">
+              <div class="meta-icon"><i data-lucide="zap"></i></div>
+              <div class="meta-content">
+                <h3>The Solution</h3>
+                <p>We migrated the complete evaluation logic to a single unified prompt executing on <strong>Gemini 3.1 Flash-Lite</strong>. The new method sends the entire parsed resume structure and the target job description together. Gemini evaluates keywords, skills, experience, education, and projects concurrently under defined guidelines, returning a single schema-conforming JSON payload.</p>
+              </div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-icon"><i data-lucide="database"></i></div>
+              <div class="meta-content">
+                <h3>Mongoose Persistence Fix</h3>
+                <p>During the migration, we identified that <code>missingKeywords</code> was declared in the TypeScript interface but absent in the Mongoose schema. This meant missing keywords identified by the engine were never stored in MongoDB. We updated the Mongoose model to persist the array appropriately.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Comparisons -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem;">
+            <h2 class="card-title" style="margin-bottom: 0;">
+              <i data-lucide="code"></i>
+              Code Comparison
+            </h2>
+            <div class="diff-toggle">
+              <button class="diff-btn active" id="btnBefore">Before (Heuristic)</button>
+              <button class="diff-btn" id="btnAfter">After (Gemini API)</button>
+            </div>
+          </div>
+          
+          <div class="tab-container">
+            <div class="tabs">
+              <button class="tab-btn active" id="tabAtsService">ats.service.ts</button>
+              <button class="tab-btn" id="tabResumeModel">resume-analysis.model.ts</button>
+            </div>
+            
+            <!-- Code Display Area -->
+            <div class="code-wrapper">
+              <pre><code class="language-typescript" id="codeDisplay"></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Cleanup & Simulator -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Cleanup status -->
+        <div class="card">
+          <h2 class="card-title">
+            <i data-lucide="trash-2"></i>
+            Code Cleanup Log
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem;">
+            To achieve a cleaner codebase, we deleted 5 obsolete helper files and simplified 2 core systems.
+          </p>
+          <ul class="cleanup-list">
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-minus" style="color: var(--danger)"></i><del>experience.service.ts</del></div>
+              <span class="status-badge deleted">Deleted</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-minus" style="color: var(--danger)"></i><del>project.service.ts</del></div>
+              <span class="status-badge deleted">Deleted</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-minus" style="color: var(--danger)"></i><del>relevance.utils.ts</del></div>
+              <span class="status-badge deleted">Deleted</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-minus" style="color: var(--danger)"></i><del>containsKeywords.ts</del></div>
+              <span class="status-badge deleted">Deleted</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-minus" style="color: var(--danger)"></i><del>normalizeKeywords.ts</del></div>
+              <span class="status-badge deleted">Deleted</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-edit" style="color: var(--warning)"></i><span>ats.service.ts</span></div>
+              <span class="status-badge modified">Refactored</span>
+            </li>
+            <li class="cleanup-item">
+              <div class="cleanup-name"><i data-lucide="file-edit" style="color: var(--warning)"></i><span>resume-analysis.model.ts</span></div>
+              <span class="status-badge modified">Database schema</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Interactive Simulator -->
+        <div class="card">
+          <h2 class="card-title">
+            <i data-lucide="sliders"></i>
+            ATS Simulator
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Test how the new Gemini AI scoring prompt handles resume assessments. Select a preset and run the simulation.
+          </p>
+          
+          <div class="sim-container">
+            <div class="input-group">
+              <label>
+                Target Job Description
+                <div class="preset-btns">
+                  <button class="preset-btn" onclick="loadPreset('react')">React Dev</button>
+                  <button class="preset-btn" onclick="loadPreset('python')">Data Engineer</button>
+                </div>
+              </label>
+              <textarea id="simJobDescription" rows="4" placeholder="Paste job description details here..."></textarea>
+            </div>
+            
+            <div class="input-group">
+              <label>Candidate Profile summary</label>
+              <textarea id="simCandidateProfile" rows="4" placeholder="Paste candidate summary, skills, and experience details here..."></textarea>
+            </div>
+
+            <button class="btn-submit" id="btnSimulate">
+              <i data-lucide="play"></i>
+              Simulate Scoring
+            </button>
+          </div>
+
+          <!-- Simulation Loader -->
+          <div class="loader" id="simLoader">
+            <div class="spinner"></div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Gemini AI assessing candidate... (Simulation)</p>
+          </div>
+
+          <!-- Simulation Result Output -->
+          <div class="sim-results" id="simResults">
+            <div class="score-summary">
+              <div class="gauge-wrapper">
+                <svg class="gauge-svg" viewBox="0 0 100 100">
+                  <defs>
+                    <linearGradient id="gauge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="var(--accent-primary)" />
+                      <stop offset="100%" stop-color="var(--accent-secondary)" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="gauge-bg" cx="50" cy="50" r="40" />
+                  <circle class="gauge-fill" id="gaugeCircle" cx="50" cy="50" r="40" />
+                </svg>
+                <div class="gauge-text" id="gaugeVal">0%</div>
+              </div>
+              <div class="score-details">
+                <h4 id="simMatchStatus">Excellent Match</h4>
+                <p>Normalized Score calculated out of 100</p>
+              </div>
+            </div>
+
+            <div class="breakdown-grid">
+              <div class="breakdown-item">
+                <div class="breakdown-header">
+                  <span>Keywords (Max 30)</span>
+                  <span id="scoreKeyword">0</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="fillKeyword"></div>
+                </div>
+              </div>
+              
+              <div class="breakdown-item">
+                <div class="breakdown-header">
+                  <span>Skills Depth (Max 20)</span>
+                  <span id="scoreSkills">0</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="fillSkills"></div>
+                </div>
+              </div>
+
+              <div class="breakdown-item">
+                <div class="breakdown-header">
+                  <span>Experience (Max 30)</span>
+                  <span id="scoreExperience">0</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="fillExperience"></div>
+                </div>
+              </div>
+
+              <div class="breakdown-item">
+                <div class="breakdown-header">
+                  <span>Education (Max 15)</span>
+                  <span id="scoreEducation">0</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="fillEducation"></div>
+                </div>
+              </div>
+
+              <div class="breakdown-item" style="grid-column: span 2;">
+                <div class="breakdown-header">
+                  <span>Projects (Max 30)</span>
+                  <span id="scoreProjects">0</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar-fill" id="fillProjects"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="reasoning-box">
+              <strong>Experience Evaluation:</strong>
+              <p id="textExpReasoning"></p>
+            </div>
+
+            <div class="reasoning-box">
+              <strong>Project Evaluation:</strong>
+              <p id="textProjReasoning"></p>
+            </div>
+
+            <div style="margin-bottom: 0.75rem;">
+              <strong style="font-size: 0.85rem; color: var(--text-secondary);">Matched Keywords:</strong>
+              <div class="keyword-pill-container" id="matchedKeywordsContainer"></div>
+            </div>
+
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-secondary);">Missing Keywords:</strong>
+              <div class="keyword-pill-container" id="missingKeywordsContainer"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>ResumeForge Development Documentation &bull; Migrated to Google Gemini AI &bull; 2026</p>
+  </footer>
+
+  <script>
+    // Lucide Icons Initialization
+    lucide.createIcons();
+
+    // Theme Management
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlEl = document.documentElement;
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = htmlEl.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+
+    // Code Presets Data
+    const codeData = {
+      atsService: {
+        before: `// C:\\Users\\abhis\\OneDrive\\Desktop\\ResumeForge\\backend\\src\\services\\ats.service.ts
+import { ParsedResume } from "../types/ai.types.js";
+import { containsKeyword } from "../utils/containsKeywords.js";
+import { normalizeKeyword } from "../utils/normalizeKeywords.js";
+import { caculateExperienceRelevance } from "./experience.service.js";
+import { calculateProjectRelevance } from "./project.service.js";
+
+const COMMON_KEYWORDS = ["javascript", "typescript", "python", "react", "node.js", /* ...150 more keywords... */];
+
+interface KeywordScore {
+  score: number;
+  missingKeywords: string[];
+  matchedKeywords: string[];
+}
+
+const calculateKeywordScore = (resumeSkills: string[], jobDescription: string): KeywordScore => {
+  const normalizedResumeSkills = resumeSkills.map(normalizeKeyword);
+  const matched = normalizedResumeSkills.filter(skill => containsKeyword(jobDescription, skill));
+  const jdKeywords = COMMON_KEYWORDS.filter(keyword => containsKeyword(jobDescription, keyword));
+  const missingKeywords = jdKeywords.filter(keyword => !normalizedResumeSkills.includes(keyword));
+  const score = jdKeywords.length === 0 ? 0 : Math.min(Math.round((matched.length / jdKeywords.length) * 30), 30);
+  return { score, missingKeywords, matchedKeywords: matched };
+};
+
+const calculateSkillsScore = (normalizedResumeSkills: string[]): number => {
+  const uniqueSkills = new Set(normalizedResumeSkills);
+  if (uniqueSkills.size >= 15) return 20;
+  if (uniqueSkills.size >= 10) return 15;
+  return 5;
+};
+
+const calculateEducationScore = (education: ParsedResume["education"]): number => {
+  if (education.length >= 2) return 15;
+  if (education.length >= 1) return 10;
+  return 0;
+};
+
+export const calculateATS = async (resume: ParsedResume, jobDescription: string): Promise<ATSResult> => {
+  const normalizedResumeSkills = resume.skills.map(normalizeKeyword);
+  const keywordResult = calculateKeywordScore(normalizedResumeSkills, jobDescription);
+  const skillsScore = calculateSkillsScore(normalizedResumeSkills);
+  const educationScore = calculateEducationScore(resume.education);
+
+  // Triggered separate Gemini requests for experience and projects (High Latency)
+  const [experienceRelevance, projectRelevance] = await Promise.all([
+    caculateExperienceRelevance(resume.experience, jobDescription),
+    calculateProjectRelevance(resume.projects, jobDescription)
+  ]);
+
+  const experienceScore = Math.max(0, Math.min(experienceRelevance.score, 30));
+  const projectScore = Math.max(0, Math.min(projectRelevance.score, 30));
+  const rawTotal = keywordResult.score + skillsScore + experienceScore + educationScore + projectScore;
+  const overallScore = Math.round((rawTotal / 125) * 100);
+
+  return {
+    overallScore,
+    keywordScore: keywordResult.score,
+    skillsScore,
+    experienceScore,
+    projectScore,
+    educationScore,
+    matchedKeywords: keywordResult.matchedKeywords,
+    missingKeywords: keywordResult.missingKeywords,
+    experienceReasoning: experienceRelevance.reasoning,
+    projectReasoning: projectRelevance.reasoning
+  };
+};`,
+        after: `// C:\\Users\\abhis\\OneDrive\\Desktop\\ResumeForge\\backend\\src\\services\\ats.service.ts
+import { ParsedResume } from "../types/ai.types.js";
+import { gemini } from "../config/gemini.js";
+
+interface ATSResult {
+  overallScore: number;
+  keywordScore: number;
+  skillsScore: number;
+  experienceScore: number;
+  educationScore: number;
+  projectScore: number;
+  matchedKeywords: string[];
+  missingKeywords: string[];
+  experienceReasoning: string;
+  projectReasoning: string;
+}
+
+/**
+ * Evaluates a parsed resume against a job description using Gemini AI.
+ * This simplifies scoring by leveraging LLM semantic understanding instead of manual regex.
+ */
+export const calculateATS = async (
+  resume: ParsedResume,
+  jobDescription: string,
+): Promise<ATSResult> => {
+  const prompt = \`
+You are an expert Applicant Tracking System (ATS) and HR assistant. Evaluate the provided candidate's resume against the Job Description and return a structured JSON scoring assessment.
+
+Job Description:
+\${jobDescription}
+
+Candidate Resume Data (JSON):
+\${JSON.stringify(resume, null, 2)}
+
+Scoring Guide (Total possible score of 125, which will be normalized to 100):
+1. keywordScore (0-30 points): Matches of key terms and technical skills between resume and job description.
+2. skillsScore (0-20 points): Depth, variety, and relevance of skills listed.
+3. experienceScore (0-30 points): Professional history relevance, roles, and responsibilities. Also provide a brief experienceReasoning.
+4. educationScore (0-15 points): Academic credentials and relevance.
+5. projectScore (0-30 points): Quality, tech stack, and scope of projects relative to the role. Also provide a brief projectReasoning.
+
+Also extract:
+- matchedKeywords: List of key terms/skills matched.
+- missingKeywords: List of key terms/skills from the Job Description that are missing on the resume.
+
+You must respond ONLY with a valid JSON object matching this schema:
+{
+  "keywordScore": number,
+  "skillsScore": number,
+  "experienceScore": number,
+  "experienceReasoning": "string explanation",
+  "educationScore": number,
+  "projectScore": number,
+  "projectReasoning": "string explanation",
+  "matchedKeywords": ["string"],
+  "missingKeywords": ["string"]
+}
+\`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: "gemini-3.1-flash-lite",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("Empty response received from Gemini.");
+    }
+
+    const parsed = JSON.parse(text);
+
+    // Bound scores to their respective ranges
+    const keywordScore = Math.max(0, Math.min(30, Number(parsed.keywordScore) || 0));
+    const skillsScore = Math.max(0, Math.min(20, Number(parsed.skillsScore) || 0));
+    const experienceScore = Math.max(0, Math.min(30, Number(parsed.experienceScore) || 0));
+    const educationScore = Math.max(0, Math.min(15, Number(parsed.educationScore) || 0));
+    const projectScore = Math.max(0, Math.min(30, Number(parsed.projectScore) || 0));
+
+    // Calculate normalized overall score out of 100
+    const rawTotal = keywordScore + skillsScore + experienceScore + educationScore + projectScore;
+    const overallScore = Math.round((rawTotal / 125) * 100);
+
+    return {
+      overallScore,
+      keywordScore,
+      skillsScore,
+      experienceScore,
+      educationScore,
+      projectScore,
+      matchedKeywords: Array.isArray(parsed.matchedKeywords) ? parsed.matchedKeywords : [],
+      missingKeywords: Array.isArray(parsed.missingKeywords) ? parsed.missingKeywords : [],
+      experienceReasoning: parsed.experienceReasoning || "",
+      projectReasoning: parsed.projectReasoning || "",
+    };
+  } catch (error) {
+    console.error("Error calculating ATS score with Gemini:", error);
+    // Fallback/Default values in case of failure
+    return {
+      overallScore: 0,
+      keywordScore: 0,
+      skillsScore: 0,
+      experienceScore: 0,
+      educationScore: 0,
+      projectScore: 0,
+      matchedKeywords: [],
+      missingKeywords: [],
+      experienceReasoning: "AI evaluation failed.",
+      projectReasoning: "AI evaluation failed.",
+    };
+  }
+};`
+      },
+      resumeModel: {
+        before: `// C:\\Users\\abhis\\OneDrive\\Desktop\\ResumeForge\\backend\\src\\modules\\resume-analysis\\resume-analysis.model.ts
+export interface IResumeAnalysis extends Document {
+  user: Types.ObjectId;
+  resume: Types.ObjectId;
+  jobDescription: string;
+  atsScore?: number;
+  keywordScore?: number;
+  skillsScore?: number;
+  experienceScore?: number;
+  educationScore?: number;
+  projectScore?: number;
+  matchedKeywords?: string[];
+  missingKeywords?: string[]; // Defined in interface
+  status: "processing" | "completed" | "failed";
+}
+
+const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    resume: { type: Schema.Types.ObjectId, ref: "Resume", required: true },
+    jobDescription: { type: String, required: true },
+    atsScore: { type: Number },
+    keywordScore: { type: Number },
+    skillsScore: { type: Number },
+    experienceScore: { type: Number },
+    educationScore: { type: Number },
+    projectScore: { type: Number },
+    matchedKeywords: [{ type: String }],
+    // missingKeywords was missing here!
+    suggestions: [{ type: String }],
+    status: { type: String, default: "processing" },
+  },
+  { timestamps: true }
+);`,
+        after: `// C:\\Users\\abhis\\OneDrive\\Desktop\\ResumeForge\\backend\\src\\modules\\resume-analysis\\resume-analysis.model.ts
+export interface IResumeAnalysis extends Document {
+  user: Types.ObjectId;
+  resume: Types.ObjectId;
+  jobDescription: string;
+  atsScore?: number;
+  keywordScore?: number;
+  skillsScore?: number;
+  experienceScore?: number;
+  educationScore?: number;
+  projectScore?: number;
+  matchedKeywords?: string[];
+  missingKeywords?: string[]; // Defined in interface
+  status: "processing" | "completed" | "failed";
+}
+
+const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    resume: { type: Schema.Types.ObjectId, ref: "Resume", required: true },
+    jobDescription: { type: String, required: true },
+    atsScore: { type: Number },
+    keywordScore: { type: Number },
+    skillsScore: { type: Number },
+    experienceScore: { type: Number },
+    educationScore: { type: Number },
+    projectScore: { type: Number },
+    matchedKeywords: [{ type: String }],
+    missingKeywords: [{ type: String }], // Added to persist in MongoDB!
+    suggestions: [{ type: String }],
+    status: { type: String, default: "processing" },
+  },
+  { timestamps: true }
+);`
+      }
+    };
+
+    let activeTab = 'atsService';
+    let activeDiff = 'after';
+
+    const codeDisplay = document.getElementById('codeDisplay');
+    const tabAtsService = document.getElementById('tabAtsService');
+    const tabResumeModel = document.getElementById('tabResumeModel');
+    const btnBefore = document.getElementById('btnBefore');
+    const btnAfter = document.getElementById('btnAfter');
+
+    function updateCodeView() {
+      const code = codeData[activeTab][activeDiff];
+      codeDisplay.textContent = code;
+      Prism.highlightElement(codeDisplay);
+    }
+
+    tabAtsService.addEventListener('click', () => {
+      activeTab = 'atsService';
+      tabAtsService.classList.add('active');
+      tabResumeModel.classList.remove('active');
+      updateCodeView();
+    });
+
+    tabResumeModel.addEventListener('click', () => {
+      activeTab = 'resumeModel';
+      tabResumeModel.classList.add('active');
+      tabAtsService.classList.remove('active');
+      updateCodeView();
+    });
+
+    btnBefore.addEventListener('click', () => {
+      activeDiff = 'before';
+      btnBefore.classList.add('active');
+      btnAfter.classList.remove('active');
+      updateCodeView();
+    });
+
+    btnAfter.addEventListener('click', () => {
+      activeDiff = 'after';
+      btnAfter.classList.add('active');
+      btnBefore.classList.remove('active');
+      updateCodeView();
+    });
+
+    // Load initial code display
+    updateCodeView();
+
+
+    // SIMULATOR LOGIC
+    const presets = {
+      react: {
+        jd: `Senior Frontend Developer role. Requires strong JavaScript (ES6+), TypeScript, and React.js expertise. Candidates must have experience with state management (Redux/MobX), responsive design (Tailwind/CSS), and unit testing using Jest/Cypress. Experience with Next.js is a plus. Minimum 4 years professional experience. Bachelor's degree in Computer Science or similar.`,
+        profile: `Frontend developer with 5 years of experience building modern web apps.
+Skills: JavaScript, TypeScript, React.js, Next.js, Redux, HTML5, CSS3, Tailwind CSS, Jest, Git, Agile.
+Experience:
+- Software Engineer at TechCorp (2023 - Present): Engineered customer-facing React dashboard. Improved load times by 40%. Implemented responsive layouts with Tailwind.
+- Frontend Developer at WebFlow Agency (2021 - 2023): Led migration from jQuery to React. Established Jest unit test suites achieving 85% coverage.
+Education:
+- B.Tech in Computer Science from National Institute of Technology (2017 - 2021).
+Projects:
+- Portfolio Dev Tools: Created React component library with 1,500+ GitHub stars. Built using Tailwind, Vite, and Jest.`
+      },
+      python: {
+        jd: `Data Engineer. Key requirements: Python, SQL, PostgreSQL, Apache Spark, and cloud platform experience (AWS/GCP/Azure). Must understand data warehousing, ETL pipelines, and databases. Experience building real-time pipelines using Kafka is highly preferred. Docker experience is required.`,
+        profile: `Passionate Software Engineer interested in backend systems and data science.
+Skills: Python, Java, SQL, PostgreSQL, MongoDB, Docker, Git.
+Experience:
+- Backend Engineer at StartupX (2024 - Present): Built Flask REST APIs. Maintained postgres databases and wrote complex SQL queries.
+Education:
+- B.Sc in Information Technology (2020 - 2024).
+Projects:
+- Movie Recommendation System: Data analysis tool built using Python, pandas, and SQLite.`
+      }
+    };
+
+    const simJobDesc = document.getElementById('simJobDescription');
+    const simCandProfile = document.getElementById('simCandidateProfile');
+    const btnSimulate = document.getElementById('btnSimulate');
+    const simLoader = document.getElementById('simLoader');
+    const simResults = document.getElementById('simResults');
+
+    function loadPreset(key) {
+      simJobDesc.value = presets[key].jd;
+      simCandProfile.value = presets[key].profile;
+    }
+
+    // Set default preset
+    loadPreset('react');
+
+    btnSimulate.addEventListener('click', () => {
+      const jdText = simJobDesc.value.trim();
+      const profileText = simCandProfile.value.trim();
+
+      if (!jdText || !profileText) {
+        alert('Please fill out both inputs to simulate the evaluation.');
+        return;
+      }
+
+      // Hide results, show loader
+      simResults.style.display = 'none';
+      simLoader.style.display = 'flex';
+
+      // Simulate API Response delay
+      setTimeout(() => {
+        simLoader.style.display = 'none';
+        simResults.style.display = 'block';
+
+        // Calculate scores deterministically based on keyword overlaps to mimic a smart AI score
+        const jdWords = jdText.toLowerCase().split(/\W+/);
+        const profileWords = profileText.toLowerCase().split(/\W+/);
+
+        // Core match metrics
+        const matched = [];
+        const missing = [];
+        
+        // Define key phrases to check
+        const targetKeywords = ['react', 'typescript', 'next.js', 'redux', 'jest', 'tailwind', 'python', 'spark', 'kafka', 'docker', 'sql', 'postgresql', 'aws', 'gcp'];
+        
+        targetKeywords.forEach(kw => {
+          const inJd = jdText.toLowerCase().includes(kw);
+          const inProfile = profileText.toLowerCase().includes(kw);
+          if (inJd && inProfile) {
+            matched.push(kw.charAt(0).toUpperCase() + kw.slice(1));
+          } else if (inJd && !inProfile) {
+            missing.push(kw.charAt(0).toUpperCase() + kw.slice(1));
+          }
+        });
+
+        // Heuristic simulation formulas
+        let keywordScore = 10;
+        if (matched.length > 0) {
+          const ratio = matched.length / (matched.length + missing.length || 1);
+          keywordScore = Math.round(10 + ratio * 20);
+        }
+        
+        let skillsScore = Math.min(10 + Math.floor(matched.length * 1.5), 20);
+        
+        // Check years/experience relevance
+        let experienceScore = 15;
+        let experienceReasoning = "Candidate shows entry-to-mid level role alignment with some relevant duties.";
+        if (profileText.includes('5 years') || profileText.includes('5 years') || profileText.includes('4 years')) {
+          experienceScore = 27;
+          experienceReasoning = "Strong experience alignment (5 years) matching the target seniority requirements. Specific achievements in performance optimization and framework migration noted.";
+        } else if (profileText.includes('2021') || profileText.includes('2020')) {
+          experienceScore = 22;
+          experienceReasoning = "Good experience matching core skills, but total tenure is slightly shorter than requested.";
+        }
+
+        let educationScore = profileText.toLowerCase().includes('b.tech') || profileText.toLowerCase().includes('b.sc') ? 12 : 5;
+        
+        let projectScore = 15;
+        let projectReasoning = "Projects listed are basic backend tools. Tech stack overlap is limited.";
+        if (profileText.toLowerCase().includes('github stars') || profileText.toLowerCase().includes('vite')) {
+          projectScore = 28;
+          projectReasoning = "Outstanding project section demonstrating modern tooling (Vite, Tailwind, Jest) and high community engagement (1,500+ GitHub stars).";
+        }
+
+        const rawTotal = keywordScore + skillsScore + experienceScore + educationScore + projectScore;
+        const overallScore = Math.round((rawTotal / 125) * 100);
+
+        // Update UI
+        document.getElementById('scoreKeyword').textContent = keywordScore;
+        document.getElementById('scoreSkills').textContent = skillsScore;
+        document.getElementById('scoreExperience').textContent = experienceScore;
+        document.getElementById('scoreEducation').textContent = educationScore;
+        document.getElementById('scoreProjects').textContent = projectScore;
+
+        document.getElementById('fillKeyword').style.width = `${(keywordScore / 30) * 100}%`;
+        document.getElementById('fillSkills').style.width = `${(skillsScore / 20) * 100}%`;
+        document.getElementById('fillExperience').style.width = `${(experienceScore / 30) * 100}%`;
+        document.getElementById('fillEducation').style.width = `${(educationScore / 15) * 100}%`;
+        document.getElementById('fillProjects').style.width = `${(projectScore / 30) * 100}%`;
+
+        document.getElementById('textExpReasoning').textContent = experienceReasoning;
+        document.getElementById('textProjReasoning').textContent = projectReasoning;
+
+        // Populate Pills
+        const matchedContainer = document.getElementById('matchedKeywordsContainer');
+        matchedContainer.innerHTML = '';
+        if (matched.length === 0) matchedContainer.innerHTML = '<em style="font-size:0.8rem;color:var(--text-muted);">None</em>';
+        matched.forEach(kw => {
+          const pill = document.createElement('span');
+          pill.className = 'keyword-pill matched';
+          pill.textContent = kw;
+          matchedContainer.appendChild(pill);
+        });
+
+        const missingContainer = document.getElementById('missingKeywordsContainer');
+        missingContainer.innerHTML = '';
+        if (missing.length === 0) missingContainer.innerHTML = '<em style="font-size:0.8rem;color:var(--text-muted);">None</em>';
+        missing.forEach(kw => {
+          const pill = document.createElement('span');
+          pill.className = 'keyword-pill missing';
+          pill.textContent = kw;
+          missingContainer.appendChild(pill);
+        });
+
+        // Set overall dial
+        const statusEl = document.getElementById('simMatchStatus');
+        if (overallScore >= 80) {
+          statusEl.textContent = 'Excellent Match';
+          statusEl.style.color = 'var(--success)';
+        } else if (overallScore >= 60) {
+          statusEl.textContent = 'Good Match';
+          statusEl.style.color = 'var(--warning)';
+        } else {
+          statusEl.textContent = 'Weak Match';
+          statusEl.style.color = 'var(--danger)';
+        }
+
+        // Circular Gauge Animation
+        const circle = document.getElementById('gaugeCircle');
+        const percentage = overallScore;
+        const radius = 40;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (percentage / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+        document.getElementById('gaugeVal').textContent = `${percentage}%`;
+
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
