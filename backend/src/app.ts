@@ -13,8 +13,14 @@ import "./workers/resume.worker.js";
 
 const app = express();
 
+app.use(
+    cors({
+        origin: "http://localhost:3000",
+        credentials: true
+    })
+)
+
 app.use(helmet()); // Security headers
-app.use(cors()); // Cross-origin requests
 app.use(compression()); // Gzip responses
 app.use(express.json()); // Parse JSON
 app.use(cookieParser()); // Parse cookies
