@@ -10,7 +10,7 @@ export const generateAccessToken = (user: IUser, sessionId: string): string => {
     },
     process.env.ACCESS_TOKEN_SECRET!,
     {
-      expiresIn: "15m",
+      expiresIn: "30s",
     },
   );
 };
