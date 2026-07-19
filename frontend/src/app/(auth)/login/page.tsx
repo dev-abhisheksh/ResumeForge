@@ -4,6 +4,7 @@ import React, { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useLogin } from "@/hooks/auth/useLogin";
 import { notify } from "@/lib/toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,8 @@ export default function LoginPage() {
 
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const router = useRouter()
 
   const { mutate, isPending, isError, error } = useLogin();
 
@@ -23,6 +26,7 @@ export default function LoginPage() {
       {
         onSuccess: () => {
           notify.success("Login successful!", "Redirecting to your dashboard...");
+           router.push("/dashboard");
         },
         onError: (err: unknown) => {
           const errMsg = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
