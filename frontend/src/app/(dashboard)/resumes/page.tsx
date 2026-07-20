@@ -28,7 +28,7 @@ export interface ResumeItem {
   title: string;
   fileUrl?: string;
   fileType: "pdf" | "docx" | "latex" | "text";
-  extractedText: string;
+  extractedText?: string;
   jobDescription?: string;
   status?: "processing" | "completed" | "failed";
   createdAt?: string;
@@ -50,8 +50,6 @@ export default function ResumesPage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log(rawResumesData)
-
   // Safely extract resumes array from API response
   const resumeList: ResumeItem[] = Array.isArray(rawResumesData)
     ? rawResumesData
@@ -66,11 +64,11 @@ export default function ResumesPage() {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
-  // Copy extracted text to clipboard
+  // Copy text to clipboard
   const handleCopyText = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    notify.success("Copied to clipboard!", "Extracted text copied.");
+    notify.success("Copied to clipboard!", "Content copied successfully.");
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -163,7 +161,6 @@ export default function ResumesPage() {
     try {
       const formData = new FormData();
       formData.append("title", title);
-      // Pass a default job description fallback if required by backend validator
       formData.append("jobDescription", "General Master Resume");
 
       if (uploadMode === "file" && file) {
@@ -191,9 +188,9 @@ export default function ResumesPage() {
   };
 
   return (
-    <div className="space-y-6 bg-white min-h-screen p-2 sm:p-4">
+    <div className="w-full space-y-6 bg-white min-h-screen p-2 sm:p-4">
       {/* Top Storage Quota Meter Box */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-white border-2 border-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
+      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-white border-2 border-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-red-600 border border-red-700 text-white font-black text-xs flex items-center justify-center shrink-0">
             {rawCount}/{maxAllowed}
@@ -235,7 +232,7 @@ export default function ResumesPage() {
       </div>
 
       {/* TOP UPLOAD RESUME CARD (File or Text/LaTeX Upload) */}
-      <div className="bg-white border-2 border-red-600 p-4 sm:p-6 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
+      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-6 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-red-600/20 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-red-600 text-white flex items-center justify-center font-black text-xs">
@@ -276,13 +273,13 @@ export default function ResumesPage() {
         </div>
 
         {isQuotaFull ? (
-          <div className="p-4 bg-red-50 border-2 border-red-600 text-red-900 text-xs font-bold shadow-2xs">
+          <div className="w-full p-4 bg-red-50 border-2 border-red-600 text-red-900 text-xs font-bold shadow-2xs">
             ⚠️ Storage Quota Reached (3/3). Delete an existing raw resume below to upload a new one.
           </div>
         ) : (
-          <form onSubmit={handleUploadSubmit} className="space-y-4">
+          <form onSubmit={handleUploadSubmit} className="space-y-4 w-full">
             {/* Resume Title Input */}
-            <div className="space-y-1">
+            <div className="space-y-1 w-full">
               <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
                 Resume Title *
               </label>
@@ -303,7 +300,7 @@ export default function ResumesPage() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${
+                className={`w-full p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${
                   isDragging
                     ? "border-red-600 bg-red-50/80 scale-[1.01]"
                     : file
@@ -364,7 +361,7 @@ export default function ResumesPage() {
 
             {/* Mode 2: Raw Text / LaTeX Code Area */}
             {uploadMode === "text" && (
-              <div className="space-y-1">
+              <div className="space-y-1 w-full">
                 <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
                   Raw Text / LaTeX Code *
                 </label>
@@ -380,7 +377,7 @@ export default function ResumesPage() {
             )}
 
             {/* Submit Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end w-full">
               <button
                 type="submit"
                 disabled={isUploading || (uploadMode === "file" && !file) || (uploadMode === "text" && !rawText.trim())}
@@ -405,7 +402,7 @@ export default function ResumesPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="p-12 text-center bg-white border-2 border-red-600/30 flex flex-col items-center justify-center space-y-3">
+        <div className="w-full p-12 text-center bg-white border-2 border-red-600/30 flex flex-col items-center justify-center space-y-3">
           <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
           <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
             Loading your resumes...
@@ -413,17 +410,24 @@ export default function ResumesPage() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty State Banner (Horizontal Row Layout) */}
       {!isLoading && rawCount === 0 && (
-        <div className="p-8 sm:p-12 text-center bg-white border-2 border-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3">
-          <div className="w-12 h-12 bg-red-50 border-2 border-red-600 text-red-600 mx-auto flex items-center justify-center">
-            <FileText className="w-6 h-6" />
+        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-start gap-4 p-4 sm:p-5 bg-red-50/40 border-2 border-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)]">
+          <div className="w-10 h-10 bg-red-600 border border-red-700 text-white flex items-center justify-center shrink-0 shadow-2xs">
+            <FileText className="w-5 h-5 stroke-[2.2]" />
           </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-black text-slate-900">No Raw Resumes Found</h3>
-            <p className="text-xs font-bold text-slate-600 max-w-md mx-auto">
-              Use the form above to upload a file or paste raw text/LaTeX code (up to 3 master resumes allowed).
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-1 gap-2">
+            <div>
+              <h3 className="text-base font-black text-slate-900 leading-tight">
+                No Raw Resumes Found
+              </h3>
+              <p className="text-xs font-bold text-slate-600 mt-0.5">
+                Use the upload form above to add your first master raw resume (up to 3 allowed).
+              </p>
+            </div>
+            <span className="px-3 py-1 text-xs font-black bg-white border border-red-600 text-red-600 shrink-0 self-start sm:self-auto shadow-2xs">
+              0 / 3 Used
+            </span>
           </div>
         </div>
       )}
@@ -435,6 +439,7 @@ export default function ResumesPage() {
             const isExpanded = expandedId === resume._id;
             const isDeleting = deletingId === resume._id;
             const isCopied = copiedId === resume._id;
+            const textContent = resume.extractedText || resume.jobDescription || "";
 
             return (
               <div
@@ -555,10 +560,10 @@ export default function ResumesPage() {
                         </div>
 
                         {/* Copy Content Button */}
-                        {resume.extractedText && (
+                        {textContent && (
                           <button
                             type="button"
-                            onClick={() => handleCopyText(resume._id, resume.extractedText)}
+                            onClick={() => handleCopyText(resume._id, textContent)}
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-black bg-white hover:bg-red-50 text-slate-800 hover:text-red-600 border border-slate-300 hover:border-red-600 transition-colors"
                           >
                             {isCopied ? (
@@ -578,7 +583,7 @@ export default function ResumesPage() {
 
                       {/* Scrollable Text Box */}
                       <div className="p-3.5 bg-slate-900 text-slate-100 border-2 border-slate-900 text-xs font-mono leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap select-text">
-                        {resume.jobDescription || "No text content extracted for this resume."}
+                        {textContent || "No text content extracted for this resume."}
                       </div>
                     </div>
                   </div>
