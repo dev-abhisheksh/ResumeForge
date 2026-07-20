@@ -46,6 +46,9 @@ export default function ResumesPage() {
   const [detailsCache, setDetailsCache] = useState<Record<string, ResumeItem>>({});
   const [loadingDetailsId, setLoadingDetailsId] = useState<string | null>(null);
 
+  // Upload Card Collapsible State
+  const [isUploadExpanded, setIsUploadExpanded] = useState<boolean>(true);
+
   // Upload Mode: "file" or "text"
   const [uploadMode, setUploadMode] = useState<"file" | "text">("file");
   const [title, setTitle] = useState("");
@@ -206,11 +209,12 @@ export default function ResumesPage() {
       await uploadMaterial(formData);
       notify.success("Upload successful!", "Resume processed and saved.");
 
-      // Reset Form State
+      // Reset Form State & collapse upload form
       setTitle("");
       setRawText("");
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setIsUploadExpanded(false);
 
       refetch();
     } catch (err) {
@@ -265,9 +269,9 @@ export default function ResumesPage() {
         </div>
       </div>
 
-      {/* TOP UPLOAD RESUME CARD (File or Text/LaTeX Upload) */}
-      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-6 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-red-600/20 pb-3">
+      {/* TOP UPLOAD RESUME CARD (COLLAPSIBLE / EXPANDABLE) */}
+      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-red-600/20 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-red-600 text-white flex items-center justify-center font-black text-xs">
               <UploadCloud className="w-4 h-4 stroke-[2.5]" />
@@ -277,160 +281,209 @@ export default function ResumesPage() {
             </h2>
           </div>
 
-          {/* Upload Mode Selector (File vs Text/LaTeX) */}
-          <div className="flex items-center gap-1 border-2 border-red-600 p-0.5 bg-slate-50">
+          <div className="flex items-center gap-2">
+            {isUploadExpanded && (
+              <div className="hidden sm:flex items-center gap-1 border-2 border-red-600 p-0.5 bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setUploadMode("file")}
+                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
+                    uploadMode === "file"
+                      ? "bg-red-600 text-white shadow-2xs"
+                      : "text-slate-700 hover:text-red-600"
+                  }`}
+                >
+                  <File className="w-3.5 h-3.5" />
+                  <span>File</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUploadMode("text")}
+                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
+                    uploadMode === "text"
+                      ? "bg-red-600 text-white shadow-2xs"
+                      : "text-slate-700 hover:text-red-600"
+                  }`}
+                >
+                  <Code className="w-3.5 h-3.5" />
+                  <span>Text / LaTeX</span>
+                </button>
+              </div>
+            )}
+
+            {/* Expand / Collapse Toggle Button */}
             <button
               type="button"
-              onClick={() => setUploadMode("file")}
-              className={`px-3 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
-                uploadMode === "file"
-                  ? "bg-red-600 text-white shadow-2xs"
-                  : "text-slate-700 hover:text-red-600"
-              }`}
+              onClick={() => setIsUploadExpanded(!isUploadExpanded)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-red-50 text-slate-900 hover:text-red-600 text-xs font-black border-2 border-red-600 transition-all shadow-2xs cursor-pointer"
             >
-              <File className="w-3.5 h-3.5" />
-              <span>File Upload</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadMode("text")}
-              className={`px-3 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
-                uploadMode === "text"
-                  ? "bg-red-600 text-white shadow-2xs"
-                  : "text-slate-700 hover:text-red-600"
-              }`}
-            >
-              <Code className="w-3.5 h-3.5" />
-              <span>Text / LaTeX Code</span>
+              <span>{isUploadExpanded ? "Hide Form" : "+ Add Resume"}</span>
+              {isUploadExpanded ? (
+                <ChevronUp className="w-4 h-4 text-red-600" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-red-600" />
+              )}
             </button>
           </div>
         </div>
 
-        {isQuotaFull ? (
-          <div className="w-full p-4 bg-red-50 border-2 border-red-600 text-red-900 text-xs font-bold shadow-2xs">
-            ⚠️ Storage Quota Reached (3/3). Delete an existing raw resume below to upload a new one.
-          </div>
-        ) : (
-          <form onSubmit={handleUploadSubmit} className="space-y-4 w-full">
-            {/* Resume Title Input */}
-            <div className="space-y-1 w-full">
-              <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
-                Resume Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Senior Full Stack Engineer 2026"
-                className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-300 focus:border-red-600 text-slate-900 font-bold text-xs sm:text-sm outline-none placeholder:text-slate-400 focus:shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] transition-all"
-              />
-            </div>
-
-            {/* Mode 1: Drag & Drop File Upload */}
-            {uploadMode === "file" && (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`w-full p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${
-                  isDragging
-                    ? "border-red-600 bg-red-50/80 scale-[1.01]"
-                    : file
-                    ? "border-emerald-600 bg-emerald-50/50"
-                    : "border-slate-300 hover:border-red-600 bg-slate-50/50 hover:bg-red-50/30"
+        {isUploadExpanded && (
+          <div className="space-y-4 w-full animate-in fade-in duration-200">
+            {/* Mobile Mode Switcher */}
+            <div className="flex sm:hidden items-center gap-1 border-2 border-red-600 p-0.5 bg-slate-50 w-full justify-center">
+              <button
+                type="button"
+                onClick={() => setUploadMode("file")}
+                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                  uploadMode === "file"
+                    ? "bg-red-600 text-white shadow-2xs"
+                    : "text-slate-700 hover:text-red-600"
                 }`}
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx,.txt,.tex"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-
-                {file ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-600 text-white flex items-center justify-center font-bold">
-                      <File className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs sm:max-w-md">
-                        {file.name}
-                      </p>
-                      <p className="text-[11px] font-bold text-emerald-700">
-                        {(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFile(null);
-                      }}
-                      className="p-1 bg-white border border-slate-300 hover:bg-red-600 hover:text-white transition-colors ml-2"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="w-12 h-12 bg-white border-2 border-red-600 text-red-600 mx-auto flex items-center justify-center shadow-2xs">
-                      <UploadCloud className="w-6 h-6 stroke-[2.2]" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-black text-slate-900">
-                        Drag & Drop your resume file here, or{" "}
-                        <span className="text-red-600 underline">Browse File</span>
-                      </p>
-                      <p className="text-[11px] font-bold text-slate-500 mt-1">
-                        Supports PDF, DOCX, TXT, and LaTeX (.tex) files
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Mode 2: Raw Text / LaTeX Code Area */}
-            {uploadMode === "text" && (
-              <div className="space-y-1 w-full">
-                <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Raw Text / LaTeX Code *
-                </label>
-                <textarea
-                  rows={6}
-                  required
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  placeholder="Paste your plain text resume content or raw \documentclass{article} LaTeX code here..."
-                  className="w-full p-3.5 bg-slate-900 text-slate-100 font-mono text-xs border-2 border-slate-900 focus:border-red-600 outline-none leading-relaxed"
-                />
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div className="flex justify-end w-full">
+                <File className="w-3.5 h-3.5" />
+                <span>File Upload</span>
+              </button>
               <button
-                type="submit"
-                disabled={isUploading || (uploadMode === "file" && !file) || (uploadMode === "text" && !rawText.trim())}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
+                type="button"
+                onClick={() => setUploadMode("text")}
+                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                  uploadMode === "text"
+                    ? "bg-red-600 text-white shadow-2xs"
+                    : "text-slate-700 hover:text-red-600"
+                }`}
               >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing & Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>Upload Raw Resume</span>
-                  </>
-                )}
+                <Code className="w-3.5 h-3.5" />
+                <span>Text / LaTeX</span>
               </button>
             </div>
-          </form>
+
+            {isQuotaFull ? (
+              <div className="w-full p-4 bg-red-50 border-2 border-red-600 text-red-900 text-xs font-bold shadow-2xs">
+                ⚠️ Storage Quota Reached (3/3). Delete an existing raw resume below to upload a new one.
+              </div>
+            ) : (
+              <form onSubmit={handleUploadSubmit} className="space-y-4 w-full">
+                {/* Resume Title Input */}
+                <div className="space-y-1 w-full">
+                  <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
+                    Resume Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Senior Full Stack Engineer 2026"
+                    className="w-full px-3.5 py-2.5 bg-white border-2 border-slate-300 focus:border-red-600 text-slate-900 font-bold text-xs sm:text-sm outline-none placeholder:text-slate-400 focus:shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] transition-all"
+                  />
+                </div>
+
+                {/* Mode 1: Drag & Drop File Upload */}
+                {uploadMode === "file" && (
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`w-full p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${
+                      isDragging
+                        ? "border-red-600 bg-red-50/80 scale-[1.01]"
+                        : file
+                        ? "border-emerald-600 bg-emerald-50/50"
+                        : "border-slate-300 hover:border-red-600 bg-slate-50/50 hover:bg-red-50/30"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.docx,.txt,.tex"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+
+                    {file ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-600 text-white flex items-center justify-center font-bold">
+                          <File className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-xs sm:max-w-md">
+                            {file.name}
+                          </p>
+                          <p className="text-[11px] font-bold text-emerald-700">
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFile(null);
+                          }}
+                          className="p-1 bg-white border border-slate-300 hover:bg-red-600 hover:text-white transition-colors ml-2"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="w-12 h-12 bg-white border-2 border-red-600 text-red-600 mx-auto flex items-center justify-center shadow-2xs">
+                          <UploadCloud className="w-6 h-6 stroke-[2.2]" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-black text-slate-900">
+                            Drag & Drop your resume file here, or{" "}
+                            <span className="text-red-600 underline">Browse File</span>
+                          </p>
+                          <p className="text-[11px] font-bold text-slate-500 mt-1">
+                            Supports PDF, DOCX, TXT, and LaTeX (.tex) files
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Mode 2: Raw Text / LaTeX Code Area */}
+                {uploadMode === "text" && (
+                  <div className="space-y-1 w-full">
+                    <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
+                      Raw Text / LaTeX Code *
+                    </label>
+                    <textarea
+                      rows={6}
+                      required
+                      value={rawText}
+                      onChange={(e) => setRawText(e.target.value)}
+                      placeholder="Paste your plain text resume content or raw \documentclass{article} LaTeX code here..."
+                      className="w-full p-3.5 bg-slate-900 text-slate-100 font-mono text-xs border-2 border-slate-900 focus:border-red-600 outline-none leading-relaxed"
+                    />
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="flex justify-end w-full">
+                  <button
+                    type="submit"
+                    disabled={isUploading || (uploadMode === "file" && !file) || (uploadMode === "text" && !rawText.trim())}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Processing & Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        <span>Upload Raw Resume</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         )}
       </div>
 
