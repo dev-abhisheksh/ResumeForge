@@ -7,3 +7,6 @@ export const singleResume = (resumeId: string) =>
 
 export const deleteResume = (resumeId: string) =>
   API.delete(`/resume/${resumeId}`);
+
+export const uploadMaterial = (data: FormData) =>
+  API.post("/resume/upload", data);
