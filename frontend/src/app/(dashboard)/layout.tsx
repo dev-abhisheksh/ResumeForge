@@ -42,8 +42,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           user={user}
         />
 
-        {/* Dashboard Children Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto bg-white">
+        {/* Dashboard Children Main Content (Subtle increase to max-w-7xl / 1280px) */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto bg-white">
           {children}
         </main>
       </div>
