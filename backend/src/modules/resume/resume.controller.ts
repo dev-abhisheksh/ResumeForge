@@ -122,7 +122,7 @@ const deleteResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
 
-    console.log(resumeId)
+    console.log(resumeId);
 
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
 
@@ -132,7 +132,13 @@ const deleteResume = asyncHandler(
     });
     if (!resume) throw new ApiError(404, "Resume not found");
 
-    await deleteFromCloudinary(resume.publicId!);
+    if (resume.publicId && resume.publicId.trim() !== "") {
+      try {
+        await deleteFromCloudinary(resume.publicId!);
+      } catch (cloudinaryErr) {
+        console.error("Cloudinary deletion warning:", cloudinaryErr);
+      }
+    }
 
     await Resume.findByIdAndDelete(resumeId);
 
