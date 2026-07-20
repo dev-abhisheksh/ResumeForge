@@ -18,9 +18,11 @@ import {
   X,
   Plus,
   Code,
+  ExternalLink,
+  Hash,
 } from "lucide-react";
 import { useResume } from "@/hooks/resume/useResumes";
-import { deleteResume, uploadMaterial } from "@/api/resume.api";
+import { deleteResume, uploadMaterial, singleResume } from "@/api/resume.api";
 import { notify } from "@/lib/toast";
 
 export interface ResumeItem {
@@ -41,6 +43,10 @@ export default function ResumesPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Cache detailed resume content fetched on demand
+  const [detailsCache, setDetailsCache] = useState<Record<string, ResumeItem>>({});
+  const [loadingDetailsId, setLoadingDetailsId] = useState<string | null>(null);
+
   // Upload Mode: "file" or "text"
   const [uploadMode, setUploadMode] = useState<"file" | "text">("file");
   const [title, setTitle] = useState("");
@@ -59,9 +65,30 @@ export default function ResumesPage() {
   const maxAllowed = 3;
   const isQuotaFull = rawCount >= maxAllowed;
 
-  // Toggle expand/collapse card
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  // Toggle expand/collapse card & fetch full details on demand if not cached
+  const toggleExpand = async (id: string) => {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+
+    setExpandedId(id);
+
+    // Fetch full extracted text if not already cached
+    if (!detailsCache[id]) {
+      setLoadingDetailsId(id);
+      try {
+        const response = await singleResume(id);
+        const fetchedResume = response.data?.resume || response.data?.data || response.data;
+        if (fetchedResume) {
+          setDetailsCache((prev) => ({ ...prev, [id]: fetchedResume }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch detailed resume:", err);
+      } finally {
+        setLoadingDetailsId(null);
+      }
+    }
   };
 
   // Copy text to clipboard
@@ -80,6 +107,14 @@ export default function ResumesPage() {
     try {
       await deleteResume(id);
       notify.success("Resume deleted", "One raw resume slot is now free.");
+      
+      // Clear from details cache if present
+      setDetailsCache((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+
       refetch();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to delete resume.";
@@ -439,7 +474,15 @@ export default function ResumesPage() {
             const isExpanded = expandedId === resume._id;
             const isDeleting = deletingId === resume._id;
             const isCopied = copiedId === resume._id;
-            const textContent = resume.extractedText || resume.jobDescription || "";
+
+            // Retrieve cached full details if available
+            const detailedItem = detailsCache[resume._id] || resume;
+            const fullTextContent = detailedItem.extractedText || detailedItem.jobDescription || "";
+            const isFetchingDetails = loadingDetailsId === resume._id;
+
+            // Calculate word & character metrics
+            const wordCount = fullTextContent ? fullTextContent.trim().split(/\s+/).filter(Boolean).length : 0;
+            const charCount = fullTextContent ? fullTextContent.length : 0;
 
             return (
               <div
@@ -487,7 +530,7 @@ export default function ResumesPage() {
 
                   {/* Right Action Icons */}
                   <div className="flex items-center gap-2 shrink-0">
-                    {/* File Download Link */}
+                    {/* Download File Button */}
                     {resume.fileUrl && (
                       <a
                         href={resume.fileUrl}
@@ -517,7 +560,7 @@ export default function ResumesPage() {
 
                     {/* Analyze CTA Link */}
                     <Link
-                      href="/analysis"
+                      href={`/analysis?resumeId=${resume._id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black border-2 border-red-700 shadow-2xs"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -529,7 +572,7 @@ export default function ResumesPage() {
                 {/* Card Bottom Expand / Collapse Toggle Button */}
                 <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                   <span className="text-[11px] font-extrabold text-slate-600">
-                    {isExpanded ? "Showing Detailed Extracted Content" : "Click expand to view extracted text content"}
+                    {isExpanded ? "Showing Master Extracted Content & Stats" : "Click expand to view full extracted text & stats"}
                   </span>
                   
                   <button
@@ -546,46 +589,116 @@ export default function ResumesPage() {
                   </button>
                 </div>
 
-                {/* EXPANDED SECTION (Extracted Content) */}
+                {/* EXPANDED SECTION (Full Extracted Text & Stats) */}
                 {isExpanded && (
                   <div className="p-4 sm:p-5 border-t-2 border-red-600 bg-white space-y-4 animate-in fade-in duration-200">
-                    {/* Extracted Text */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <AlignLeft className="w-4 h-4 text-red-600" />
-                          <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                            Extracted Resume Content / Code
-                          </h4>
+                    {isFetchingDetails ? (
+                      <div className="p-8 text-center flex flex-col items-center justify-center space-y-2">
+                        <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
+                        <p className="text-xs font-black text-slate-700 uppercase">
+                          Fetching extracted content...
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* 1. Metadata Stats Bar */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-red-50/50 border-2 border-red-600/30 text-xs font-bold text-slate-800">
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 block uppercase">
+                              Word Count
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              {wordCount.toLocaleString()} words
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 block uppercase">
+                              Char Count
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              {charCount.toLocaleString()} chars
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 block uppercase">
+                              Format
+                            </span>
+                            <span className="text-sm font-black text-red-600 uppercase">
+                              {resume.fileType || "PDF"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 block uppercase">
+                              Status
+                            </span>
+                            <span className="text-sm font-black text-emerald-700">
+                              Ready for AI
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Copy Content Button */}
-                        {textContent && (
-                          <button
-                            type="button"
-                            onClick={() => handleCopyText(resume._id, textContent)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-black bg-white hover:bg-red-50 text-slate-800 hover:text-red-600 border border-slate-300 hover:border-red-600 transition-colors"
-                          >
-                            {isCopied ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                <span className="text-emerald-700">Copied!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5 text-slate-500" />
-                                <span>Copy Text</span>
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
+                        {/* 2. Full Extracted Text Container */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <AlignLeft className="w-4 h-4 text-red-600" />
+                              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Full Extracted Master Text
+                              </h4>
+                            </div>
 
-                      {/* Scrollable Text Box */}
-                      <div className="p-3.5 bg-slate-900 text-slate-100 border-2 border-slate-900 text-xs font-mono leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap select-text">
-                        {textContent || "No text content extracted for this resume."}
-                      </div>
-                    </div>
+                            {/* Copy Content Button */}
+                            {fullTextContent && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyText(resume._id, fullTextContent)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black bg-white hover:bg-red-50 text-slate-900 hover:text-red-600 border-2 border-slate-300 hover:border-red-600 transition-colors shadow-2xs"
+                              >
+                                {isCopied ? (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span className="text-emerald-700">Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>Copy Text</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Scrollable Text Box */}
+                          <div className="p-4 bg-slate-900 text-slate-100 border-2 border-slate-900 text-xs font-mono leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap select-text">
+                            {fullTextContent || "No text content extracted for this resume."}
+                          </div>
+                        </div>
+
+                        {/* 3. Action CTAs Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+                          {resume.fileUrl && (
+                            <a
+                              href={resume.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-black text-slate-700 hover:text-red-600 underline"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>View Original Uploaded Document</span>
+                            </a>
+                          )}
+
+                          <Link
+                            href={`/analysis?resumeId=${resume._id}`}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black border-2 border-red-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ml-auto"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            <span>Analyze Against Target Job Description</span>
+                          </Link>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
