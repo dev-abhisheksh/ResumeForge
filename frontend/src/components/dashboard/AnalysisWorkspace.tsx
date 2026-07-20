@@ -46,6 +46,7 @@ export interface AnalysisResultData {
   role?: string;
   createdAt?: string;
   resume?: any;
+  result?: any;
   [key: string]: any;
 }
 
@@ -158,11 +159,50 @@ export default function AnalysisWorkspace({
 
   const selectedResumeObj = resumeList.find((r: any) => r._id === selectedResumeId);
 
-  // Extract score parameters safely
-  const atsScore = analysisResult?.overallScore ?? analysisResult?.atsScore ?? 85;
-  const matchedKeywords = analysisResult?.matchedKeywords || [];
-  const missingKeywords = analysisResult?.missingKeywords || [];
-  const suggestions = analysisResult?.suggestions || analysisResult?.recommendations || [];
+  // Extract score parameters safely across both live AI scan & stored MongoDB documents
+  const atsScore =
+    analysisResult?.atsScore ??
+    analysisResult?.overallScore ??
+    analysisResult?.result?.atsScore ??
+    analysisResult?.result?.overallScore ??
+    85;
+
+  const keywordScore =
+    analysisResult?.keywordScore ??
+    analysisResult?.result?.keywordScore ??
+    80;
+
+  const skillsScore =
+    analysisResult?.skillsScore ??
+    analysisResult?.result?.skillsScore ??
+    85;
+
+  const experienceScore =
+    analysisResult?.experienceScore ??
+    analysisResult?.result?.experienceScore ??
+    75;
+
+  const educationScore =
+    analysisResult?.educationScore ??
+    analysisResult?.result?.educationScore ??
+    90;
+
+  const matchedKeywords =
+    analysisResult?.matchedKeywords ||
+    analysisResult?.result?.matchedKeywords ||
+    [];
+
+  const missingKeywords =
+    analysisResult?.missingKeywords ||
+    analysisResult?.result?.missingKeywords ||
+    [];
+
+  const suggestions =
+    analysisResult?.suggestions ||
+    analysisResult?.recommendations ||
+    analysisResult?.result?.suggestions ||
+    analysisResult?.result?.recommendations ||
+    [];
 
   return (
     <div className="w-full space-y-6 bg-white min-h-screen p-2 sm:p-4 font-sans">
@@ -353,7 +393,7 @@ export default function AnalysisWorkspace({
         ) : (
           <div className="flex flex-col gap-2.5 w-full">
             {recentAnalyses.map((item, idx) => {
-              const score = item.atsScore ?? item.overallScore ?? 80;
+              const itemScore = item.atsScore ?? item.overallScore ?? 80;
               const resObj = item.resume;
 
               return (
@@ -365,14 +405,14 @@ export default function AnalysisWorkspace({
                     {/* Score Badge */}
                     <div
                       className={`w-9 h-9 font-black text-xs flex items-center justify-center shrink-0 border ${
-                        score >= 80
+                        itemScore >= 80
                           ? "bg-emerald-600 text-white border-emerald-700"
-                          : score >= 65
+                          : itemScore >= 65
                           ? "bg-amber-500 text-white border-amber-600"
                           : "bg-red-600 text-white border-red-700"
                       }`}
                     >
-                      {score}%
+                      {itemScore}%
                     </div>
 
                     <div className="min-w-0">
@@ -468,27 +508,19 @@ export default function AnalysisWorkspace({
               <div className="grid grid-cols-2 gap-3 shrink-0">
                 <div className="p-2.5 bg-slate-50 border-2 border-slate-200 text-center min-w-[90px]">
                   <span className="text-[10px] font-black text-slate-500 uppercase block">Keywords</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {analysisResult.keywordScore ?? 80}%
-                  </span>
+                  <span className="text-sm font-black text-slate-900">{keywordScore}%</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 border-2 border-slate-200 text-center min-w-[90px]">
                   <span className="text-[10px] font-black text-slate-500 uppercase block">Skills</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {analysisResult.skillsScore ?? 85}%
-                  </span>
+                  <span className="text-sm font-black text-slate-900">{skillsScore}%</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 border-2 border-slate-200 text-center min-w-[90px]">
                   <span className="text-[10px] font-black text-slate-500 uppercase block">Experience</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {analysisResult.experienceScore ?? 75}%
-                  </span>
+                  <span className="text-sm font-black text-slate-900">{experienceScore}%</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 border-2 border-slate-200 text-center min-w-[90px]">
                   <span className="text-[10px] font-black text-slate-500 uppercase block">Education</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {analysisResult.educationScore ?? 90}%
-                  </span>
+                  <span className="text-sm font-black text-slate-900">{educationScore}%</span>
                 </div>
               </div>
             </div>
