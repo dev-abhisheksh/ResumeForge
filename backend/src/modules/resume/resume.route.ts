@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import {
-    deleteResume,
+  deleteResume,
   detailedResume,
   myResumes,
   uploadResume,
@@ -14,8 +14,7 @@ router.use(verifyToken);
 router.post("/upload", upload.single("resume"), uploadResume);
 router.get("/", myResumes);
 
-router.delete("/delete/:resumeId", deleteResume)
-
+router.delete("/:resumeId", deleteResume);
 router.get("/:resumeId", detailedResume);
 
 export default router;
