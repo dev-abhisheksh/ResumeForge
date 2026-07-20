@@ -1,44 +1,54 @@
 "use client";
 
-import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
+import React, { ReactNode, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import Navbar from "@/components/dashboard/Navbar";
+import Sidebar from "@/components/dashboard/Sidebar";
+import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 
 interface DashboardLayoutProps {
-    children: ReactNode
+  children: ReactNode;
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-    const router = useRouter()
-    const { data, isLoading } = useCurrentUser()
+  const router = useRouter();
+  const { data, isLoading } = useCurrentUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    useEffect(() => {
-        if (!isLoading && !data) {
-            router.replace("/login")
-        }
-    }, [data, isLoading, router])
+  useEffect(() => {
+    if (!isLoading && !data) {
+      router.replace("/login");
+    }
+  }, [data, isLoading, router]);
 
-    return (
-        <div className="flex min-h-screen">
-            {/* Sidebar */}
-            <aside className="w-64 border-r p-4">
-                Sidebar
-            </aside>
+  // Extract user payload from Axios response data
+  const user = data?.data;
 
-            {/* Main Content */}
-            <div className="flex flex-1 flex-col">
-                {/* Navbar */}
-                <header className="h-16 border-b flex items-center px-6">
-                    Navbar
-                </header>
+  return (
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans">
+      {/* Dashboard Top Navbar */}
+      <Navbar
+        user={user}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onMobileMenuToggle={() => setIsMobileMenuOpen((prev) => !prev)}
+      />
 
-                {/* Page Content */}
-                <main className="flex-1 p-6">
-                    {children}
-                </main>
-            </div>
-        </div>
-    )
-}
+      {/* Main Content Layout with Sidebar */}
+      <div className="flex flex-1 relative bg-white">
+        {/* Dashboard Sidebar */}
+        <Sidebar
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+          user={user}
+        />
 
-export default DashboardLayout
+        {/* Dashboard Main Content (Pure White Background) */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full bg-white">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardLayout;
