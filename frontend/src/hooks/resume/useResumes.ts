@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 export const useResume = () => {
   return useQuery({
     queryKey: ["resumes"],
-    queryFn: resumes,
+    queryFn: async()=>{
+      const res = await resumes()
+      return res.data.resumes
+    },
   });
 };

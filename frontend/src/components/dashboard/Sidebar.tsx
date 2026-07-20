@@ -68,9 +68,9 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container - Opens from RIGHT side on mobile, fixed left on desktop */}
+      {/* Sidebar Container - FIXED on desktop (lg:fixed lg:top-16 lg:bottom-0 lg:left-0) so it NEVER scrolls with the main page */}
       <aside
-        className={`fixed top-0 bottom-0 right-0 lg:left-0 lg:right-auto z-50 w-64 bg-white border-l-2 lg:border-l-0 lg:border-r-2 border-red-600 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 right-0 lg:left-0 lg:right-auto lg:top-16 lg:bottom-0 z-40 w-64 bg-white border-l-2 lg:border-l-0 lg:border-r-2 border-red-600 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
           isOpen ? "translate-x-0 shadow-2xl shadow-red-950/20" : "translate-x-full lg:translate-x-0 lg:shadow-none"
         }`}
       >

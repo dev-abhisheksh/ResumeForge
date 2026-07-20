@@ -94,7 +94,7 @@ const myResumes = asyncHandler(
     res.status(200).json({
       success: true,
       count: resumes.length,
-      data: resumes,
+      resumes,
     });
   },
 );
@@ -121,6 +121,9 @@ const detailedResume = asyncHandler(
 const deleteResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
+
+    console.log(resumeId)
+
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
 
     const resume = await Resume.findOne({

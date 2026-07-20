@@ -33,17 +33,17 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         onMobileMenuToggle={() => setIsMobileMenuOpen((prev) => !prev)}
       />
 
-      {/* Main Content Layout with Sidebar */}
-      <div className="flex flex-1 relative bg-white">
-        {/* Dashboard Sidebar */}
+      {/* Main Container with Sidebar Offset on Desktop */}
+      <div className="flex flex-1 relative bg-white lg:pl-64">
+        {/* Fixed Desktop Sidebar & Right Mobile Drawer */}
         <Sidebar
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
           user={user}
         />
 
-        {/* Dashboard Main Content (Pure White Background) */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full bg-white">
+        {/* Dashboard Children Main Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto bg-white">
           {children}
         </main>
       </div>
