@@ -11,7 +11,8 @@ import { ATSResult } from "../../types/ats-result.types.js";
 const getResumeRecommendationsAndGuide = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
-    const { jobDescription, company, role } = req.body;
+    const body = req.body || {};
+    const { jobDescription, company, role } = body;
 
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
     if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {

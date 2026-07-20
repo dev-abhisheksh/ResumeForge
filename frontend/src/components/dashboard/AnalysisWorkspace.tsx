@@ -120,13 +120,12 @@ export default function AnalysisWorkspace({
     setAnalysisResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append("jobDescription", jobDescription);
-      if (company) formData.append("company", company);
-      if (role) formData.append("role", role);
-
       const response = await analyzeWithAi({
-        data: formData,
+        data: {
+          jobDescription,
+          company,
+          role,
+        },
         resumeId: selectedResumeId,
       });
 
