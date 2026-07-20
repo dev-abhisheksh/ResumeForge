@@ -2,7 +2,10 @@ import { UploadResumeBody } from "../../types/resume.types.js";
 import ApiError from "../../utils/ApiError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { Response, Request } from "express";
-import { uploadToCloudinary } from "../../utils/cloudinary.js";
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from "../../utils/cloudinary.js";
 import { Resume } from "./resume.model.js";
 import { extractText } from "../../utils/fileParser.js";
 import { resumeQueue } from "../../queues/resume.queue.js";
@@ -27,6 +30,7 @@ const uploadResume = asyncHandler(
         "Maximum 3 resumes allowed. Delete one to upload a new resume.",
       );
 
+    let publicId: string | undefined;
     let fileUrl: string | undefined;
     let fileType: "pdf" | "docx" | "latex" | "text" | undefined;
     let extractedText: string;
@@ -47,12 +51,14 @@ const uploadResume = asyncHandler(
         req.file.originalname,
       );
       fileUrl = result.secure_url;
+      publicId = result.public_id;
 
       extractedText = await extractText(req.file.buffer, req.file.mimetype);
     } else {
       fileType = "text";
       extractedText = text!;
       fileUrl = "";
+      publicId = "";
     }
 
     const resume = await Resume.create({
@@ -112,4 +118,26 @@ const detailedResume = asyncHandler(
   },
 );
 
-export { uploadResume, myResumes, detailedResume };
+const deleteResume = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { resumeId } = req.params;
+    if (!resumeId) throw new ApiError(400, "Resume ID is required");
+
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: req.user!._id,
+    });
+    if (!resume) throw new ApiError(404, "Resume not found");
+
+    await deleteFromCloudinary(resume.publicId!);
+
+    await Resume.findByIdAndDelete(resumeId);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume deleted successfully",
+    });
+  },
+);
+
+export { uploadResume, myResumes, detailedResume, deleteResume };

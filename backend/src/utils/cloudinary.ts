@@ -28,3 +28,9 @@ export const uploadToCloudinary = (
     stream.end(buffer);
   });
 };
+
+export const deleteFromCloudinary = async (publicId: string) => {
+  return cloudinary.uploader.destroy(publicId, {
+    resource_type: "raw",
+  });
+};

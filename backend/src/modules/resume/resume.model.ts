@@ -10,6 +10,7 @@ export interface IResume extends Document {
   updatedAt: Date;
   status: "processing" | "completed" | "failed";
   jobDescription: string;
+  publicId?: string
 }
 
 const resumeSchema = new Schema<IResume>(
@@ -34,6 +35,10 @@ const resumeSchema = new Schema<IResume>(
     fileUrl: {
       type: String,
       required: false,
+    },
+
+    publicId: {
+      type: String,
     },
 
     fileType: {

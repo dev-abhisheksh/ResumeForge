@@ -1,6 +1,7 @@
 import express from "express";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import {
+    deleteResume,
   detailedResume,
   myResumes,
   uploadResume,
@@ -11,8 +12,9 @@ const router = express.Router();
 router.use(verifyToken);
 
 router.post("/upload", upload.single("resume"), uploadResume);
-router.get("/my-resumes", myResumes);
+router.get("/", myResumes);
 
+router.delete("/delete/:resumeId", deleteResume)
 
 router.get("/:resumeId", detailedResume);
 
