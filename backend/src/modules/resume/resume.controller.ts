@@ -6,6 +6,7 @@ import { uploadToCloudinary } from "../../utils/cloudinary.js";
 import { Resume } from "./resume.model.js";
 import { extractText } from "../../utils/fileParser.js";
 import { resumeQueue } from "../../queues/resume.queue.js";
+import { success } from "zod";
 
 const uploadResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -80,7 +81,9 @@ const uploadResume = asyncHandler(
 
 const myResumes = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const resumes = await Resume.find({ user: req.user!._id });
+    const resumes = await Resume.find({ user: req.user!._id })
+      .sort({ createdAt: -1 })
+      .select("-extractedText");
 
     res.status(200).json({
       success: true,
@@ -90,4 +93,23 @@ const myResumes = asyncHandler(
   },
 );
 
-export { uploadResume, myResumes };
+const detailedResume = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { resumeId } = req.params;
+    if (!resumeId) throw new ApiError(400, "Resume ID is required");
+
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: req.user!._id,
+    });
+
+    if (!resume) throw new ApiError(404, "Resume not found");
+
+    res.status(200).json({
+      success: true,
+      resume,
+    });
+  },
+);
+
+export { uploadResume, myResumes, detailedResume };
