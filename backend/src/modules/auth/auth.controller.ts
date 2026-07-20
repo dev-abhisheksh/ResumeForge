@@ -11,7 +11,6 @@ import { cookieOptions } from "../../utils/cookieOptions.js";
 import { hashToken } from "../../utils/hashToken.js";
 import { Session } from "../session/session.model.js";
 import jwt from "jsonwebtoken";
-import { success } from "zod";
 
 const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -120,7 +119,7 @@ const loginUser = asyncHandler(
 const refreshTokenRotation = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const refreshToken = req.cookies?.refreshToken;
-    if (!refreshToken) throw new ApiError(400, "RefreshToken not found");
+    if (!refreshToken) throw new ApiError(401, "RefreshToken not found");
 
     let decoded;
 
@@ -132,10 +131,10 @@ const refreshTokenRotation = asyncHandler(
       throw new ApiError(401, "Invalid or expired refresh token");
     }
 
-    if (!decoded) throw new ApiError(400, "Invalid refreshToken");
+    if (!decoded) throw new ApiError(401, "Invalid refreshToken");
 
     const user = await User.findById(decoded._id);
-    if (!user) throw new ApiError(404, "user not found");
+    if (!user) throw new ApiError(401, "User not found");
 
     const refreshTokenHash = hashToken(refreshToken);
 
@@ -150,7 +149,7 @@ const refreshTokenRotation = asyncHandler(
         { user: user._id },
         { isRevoked: true, expiresAt: new Date() },
       );
-      throw new ApiError(401, "Invalid refreshToken");
+      throw new ApiError(401, "Invalid refreshToken session");
     }
 
     if (session.expiresAt < new Date())

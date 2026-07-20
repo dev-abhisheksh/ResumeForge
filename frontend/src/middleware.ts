@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const isValidToken = (token?: string): boolean => {
+  if (!token) return false;
+  const cleaned = token.trim();
+  return (
+    cleaned !== "" &&
+    cleaned !== "undefined" &&
+    cleaned !== "null" &&
+    cleaned !== "false"
+  );
+};
+
 export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  // Consider authenticated if either accessToken or refreshToken is present
-  const isAuthenticated = Boolean(accessToken || refreshToken);
+  // Check if either token is a valid non-empty string
+  const isAuthenticated = isValidToken(accessToken) || isValidToken(refreshToken);
 
   const { pathname } = request.nextUrl;
   const isAuthPage =
@@ -13,7 +24,11 @@ export function middleware(request: NextRequest) {
 
   // Not logged in → protect private routes
   if (!isAuthenticated && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    // Clear stale cookie values if present
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
+    return response;
   }
 
   // Already logged in → redirect away from login/register
@@ -26,9 +41,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/dashboard",
     "/dashboard/:path*",
+    "/profile",
     "/profile/:path*",
-    "/resume/:path*",
+    "/resumes",
+    "/resumes/:path*",
+    "/analysis",
     "/analysis/:path*",
     "/login",
     "/register",
