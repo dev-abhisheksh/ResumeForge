@@ -10,7 +10,7 @@ const getResumeRecommendationsAndGuide = asyncHandler(
     const { resumeId } = req.params;
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
 
-    const resumeAnalysis = await ResumeAnalysis.findOne({resume: resumeId});
+    const resumeAnalysis = await ResumeAnalysis.findOne({ resume: resumeId });
     if (!resumeAnalysis) throw new ApiError(404, "Resume Analysis not found");
 
     const atsResult: ATSResult = {
@@ -39,4 +39,19 @@ const getResumeRecommendationsAndGuide = asyncHandler(
   },
 );
 
-export {getResumeRecommendationsAndGuide};
+const getRecentAnalyses = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const recentAnalyses = await ResumeAnalysis.find({ user: req.user!._id })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("resume", "title fileType fileUrl");
+
+    res.status(200).json({
+      success: true,
+      count: recentAnalyses.length,
+      analyses: recentAnalyses,
+    });
+  },
+);
+
+export { getResumeRecommendationsAndGuide, getRecentAnalyses };

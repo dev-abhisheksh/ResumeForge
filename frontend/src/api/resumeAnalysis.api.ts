@@ -7,3 +7,5 @@ export const analyzeWithAi = ({
   data: FormData;
   resumeId: string;
 }) => API.post(`/resume-analysis/analyze/${resumeId}`, data);
+
+export const getRecentAnalyses = () => API.get("/resume-analysis/recent");
