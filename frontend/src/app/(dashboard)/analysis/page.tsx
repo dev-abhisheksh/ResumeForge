@@ -1,9 +1,8 @@
-import React from 'react'
+"use client";
 
-const Analysis = () => {
-  return (
-    <div>Analysis</div>
-  )
+import React from "react";
+import AnalysisWorkspace from "@/components/dashboard/AnalysisWorkspace";
+
+export default function AnalysisPage() {
+  return <AnalysisWorkspace />;
 }
-
-export default Analysis
