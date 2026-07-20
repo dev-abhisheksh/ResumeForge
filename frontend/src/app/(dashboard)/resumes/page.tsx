@@ -19,7 +19,6 @@ import {
   Plus,
   Code,
   ExternalLink,
-  Hash,
 } from "lucide-react";
 import { useResume } from "@/hooks/resume/useResumes";
 import { deleteResume, uploadMaterial, singleResume } from "@/api/resume.api";
@@ -558,9 +557,9 @@ export default function ResumesPage() {
                       )}
                     </button>
 
-                    {/* Analyze CTA Link */}
+                    {/* Dynamic Analyze Link pointing to /analysis/[resumeId] */}
                     <Link
-                      href={`/analysis?resumeId=${resume._id}`}
+                      href={`/analysis/${resume._id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black border-2 border-red-700 shadow-2xs"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -690,7 +689,7 @@ export default function ResumesPage() {
                           )}
 
                           <Link
-                            href={`/analysis?resumeId=${resume._id}`}
+                            href={`/analysis/${resume._id}`}
                             className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black border-2 border-red-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ml-auto"
                           >
                             <Sparkles className="w-4 h-4" />

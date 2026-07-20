@@ -5,6 +5,6 @@ import { getResumeRecommendationsAndGuide } from "./resume-analysis.controller.j
 const router = express.Router();
 router.use(verifyToken);
 
-router.post("/recommendations/:resumeId", getResumeRecommendationsAndGuide);
+router.post("/analyze/:resumeId", getResumeRecommendationsAndGuide);
 
 export default router;
