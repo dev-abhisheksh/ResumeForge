@@ -341,15 +341,27 @@ export default function AnalysisWorkspace({
             </div>
 
             {/* Run Scan Button */}
-            <div className="flex justify-end pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
+              {(!selectedResumeId || !jobDescription.trim() || jobDescription.trim().length < 10) ? (
+                <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 px-3 py-1.5 border border-amber-300 text-xs font-bold">
+                  <span>⚠️ Select a master resume and paste a job description to enable AI scan.</span>
+                </div>
+              ) : (
+                <span className="text-xs font-extrabold text-emerald-700">✓ All required fields completed</span>
+              )}
+
               <button
                 type="submit"
-                disabled={isAnalyzing || !selectedResumeId || !jobDescription.trim()}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
+                disabled={isAnalyzing || !selectedResumeId || !jobDescription.trim() || jobDescription.trim().length < 10}
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 text-xs sm:text-sm font-black border-2 transition-all ${
+                  isAnalyzing || !selectedResumeId || !jobDescription.trim() || jobDescription.trim().length < 10
+                    ? "bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed shadow-none opacity-80"
+                    : "bg-red-600 hover:bg-red-700 text-white border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                }`}
               >
                 {isAnalyzing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
                     <span>Analyzing Resume with AI...</span>
                   </>
                 ) : (
