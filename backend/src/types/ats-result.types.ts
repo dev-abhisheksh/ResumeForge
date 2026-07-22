@@ -9,5 +9,5 @@ export interface ATSResult {
   missingKeywords: string[];
   experienceReasoning: string;
   projectReasoning: string;
-  atsScore: number;
+  atsScore?: number;
 }

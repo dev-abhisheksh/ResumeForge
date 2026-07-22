@@ -7,12 +7,12 @@ import { parseResume } from "../../services/ai/gemini.service.js";
 import { calculateATS } from "../../services/ats.service.js";
 import { generateATSRecommendations } from "../../services/ats-recommendation.service.js";
 import { ATSResult } from "../../types/ats-result.types.js";
+import { GetAiRecommendationsBody } from "../../types/resume.types.js";
 
 const getResumeRecommendationsAndGuide = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
-    const body = req.body || {};
-    const { jobDescription, company, role } = body;
+    const { jobDescription, company, role } = req.body as GetAiRecommendationsBody;
 
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
     if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {

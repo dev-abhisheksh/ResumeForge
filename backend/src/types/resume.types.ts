@@ -4,4 +4,10 @@ interface UploadResumeBody {
   jobDescription: string;
 }
 
-export { UploadResumeBody };
+interface GetAiRecommendationsBody{
+  jobDescription: string;
+  company?: string;
+  role?: string;
+}
+
+export { UploadResumeBody, GetAiRecommendationsBody };
