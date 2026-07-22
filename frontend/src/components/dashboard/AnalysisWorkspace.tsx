@@ -12,16 +12,15 @@ import RecentAnalysesList from "./analysis/RecentAnalysesList";
 import AnalysisLoadingCard from "./analysis/AnalysisLoadingCard";
 import AnalysisReportView from "./analysis/AnalysisReportView";
 import { useRecentAnalysis } from "@/hooks/resumeAnalysis/useRecentAnalysis";
+import { useAnalyzeWithAi } from "@/hooks/resumeAnalysis/useAnalyzeWithAi";
 
 export default function AnalysisWorkspace({
   preselectedResumeId,
 }: AnalysisWorkspaceProps) {
+
   const { data: rawResumesData, isLoading: isLoadingResumes } = useResume();
-  const {
-    data: recentAnalyses = [],
-    isLoading: isLoadingRecentAnalysis,
-    refetch: refetchRecent,
-  } = useRecentAnalysis();
+  const { data: recentAnalyses = [], isLoading: isLoadingRecentAnalysis, refetch: refetchRecent, } = useRecentAnalysis();
+  const { data: analyzewitai, error: errorAnalyzeWithAi, isPending: isPendingAnalyzeWithAi, mutate: mutateAnalyzeWithAi } = useAnalyzeWithAi()
 
   // Form State & Collapsible State
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(true);
@@ -37,9 +36,7 @@ export default function AnalysisWorkspace({
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultData | null>(null);
 
   // Safely extract master resumes array
-  const resumeList = Array.isArray(rawResumesData)
-    ? rawResumesData
-    : rawResumesData?.data || rawResumesData?.resumes || [];
+  const resumeList = Array.isArray(rawResumesData) ? rawResumesData : rawResumesData?.data || rawResumesData?.resumes || [];
 
   // Sync preselectedId if available
   useEffect(() => {
@@ -50,68 +47,46 @@ export default function AnalysisWorkspace({
     }
   }, [preselectedResumeId, resumeList]);
 
-  // Log state updates to console whenever active analysisResult changes
-  useEffect(() => {
-    if (analysisResult) {
-      console.log("📊 Active Analysis Result in React State:", analysisResult);
-    }
-  }, [analysisResult]);
 
-  // Handle Form Submission for live AI analysis
-  const handleRunAnalysis = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRunAnalysis = (e: React.FormEvent) => {
+    e.preventDefault()
 
     if (!selectedResumeId) {
-      notify.error("Select Resume", "Please select a master raw resume.");
+      notify.error("Select Resume", "Please select a master raw resume")
       return;
     }
+
     if (!jobDescription.trim()) {
-      notify.error("Missing Job Description", "Please paste the target job description.");
-      return;
+      notify.error("Missing Job Description", "Please paste the target Job Description")
     }
 
-    setIsAnalyzing(true);
-    setAnalysisResult(null);
-
-    try {
-      const response = await analyzeWithAi({
-        data: {
-          jobDescription,
-          company,
-          role,
-        },
+    mutateAnalyzeWithAi(
+      {
         resumeId: selectedResumeId,
-      });
+        data: { jobDescription, company, role }
+      }, {
+      onSuccess: (res) => {
+        const resData =
+          res.data?.result ??
+          res.data?.analysis ??
+          res.data?.data ??
+          res.data
 
-      const resData =
-        response.data?.result ||
-        response.data?.analysis ||
-        response.data?.data ||
-        response.data;
+        setAnalysisResult(resData);
+        notify.success("Analysis Complete!", "AI ATS feedback generated successfully.")
+        setIsFormExpanded(false)
 
-      console.log("🚀 Live Analysis API Response Received:", resData);
-      setAnalysisResult(resData);
-
-      notify.success("Analysis Complete!", "AI ATS feedback generated successfully.");
-
-      // Auto collapse form and refetch recent scans list via React Query
-      setIsFormExpanded(false);
-      refetchRecent();
-
-      // Smooth scroll down to scan report results view
-      setTimeout(() => {
-        const reportElem = document.getElementById("scan-report-results");
-        if (reportElem) {
-          reportElem.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to run AI analysis.";
-      notify.error("Analysis Failed", msg);
-    } finally {
-      setIsAnalyzing(false);
+        setTimeout(() => {
+          document.getElementById("scan-report-results")?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }, 100);
+      },
+      onError: (err) => {
+        const msg = err instanceof Error ? err.message : "Failed to run AI Analysis";
+        notify.error("Analysis Failed", msg);
+      }
     }
-  };
+    )
+  }
 
   // Load a recent scan from history into active result view
   const handleLoadRecentItem = (item: AnalysisResultData) => {
@@ -162,7 +137,7 @@ export default function AnalysisWorkspace({
         setCompany={setCompany}
         role={role}
         setRole={setRole}
-        isAnalyzing={isAnalyzing}
+        isAnalyzing={isPendingAnalyzeWithAi}
         isFormExpanded={isFormExpanded}
         setIsFormExpanded={setIsFormExpanded}
         onSubmit={handleRunAnalysis}
@@ -176,10 +151,10 @@ export default function AnalysisWorkspace({
       />
 
       {/* 4. Loading State Card */}
-      {isAnalyzing && <AnalysisLoadingCard />}
+      {isPendingAnalyzeWithAi && <AnalysisLoadingCard />}
 
       {/* 5. Active Analysis Report View */}
-      {analysisResult && !isAnalyzing && (
+      {analysisResult && !isPendingAnalyzeWithAi && (
         <AnalysisReportView analysisResult={analysisResult} />
       )}
     </div>

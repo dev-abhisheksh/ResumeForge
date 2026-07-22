@@ -1,12 +1,14 @@
-import { analyzeWithAi } from "@/api/resumeAnalysis.api"
-import { QueryClient, useMutation } from "@tanstack/react-query"
+import { AnalyzePayload, analyzeWithAi } from "@/api/resumeAnalysis.api"
+import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
+
 
 export const useAnalyzeWithAi = ()=>{
-    const queryClient = new QueryClient()
+  const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: analyzeWithAi,
-        // onSuccess: ()=>{
-        //     queryClient.invalidateQueries.
-        // }
+        mutationFn: ({data, resumeId}: {data: AnalyzePayload, resumeId: string})=>
+            analyzeWithAi({data, resumeId}),
+        onSuccess: ()=>{
+            queryClient.invalidateQueries({queryKey: ["recent-analysis"]})
+        }
     })
 }
