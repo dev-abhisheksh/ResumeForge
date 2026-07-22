@@ -118,7 +118,7 @@ const getDashboardStats = asyncHandler(
     const analytics = await ResumeAnalysis.aggregate([
       {
         $match: {
-          user: new mongoose.Types.ObjectId(userId as string),
+          user: new mongoose.Types.ObjectId(userId.toString()),
         },
       },
       {

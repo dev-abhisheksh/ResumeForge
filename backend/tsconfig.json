@@ -23,6 +23,6 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["src", "../frontend/src/middleware.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
