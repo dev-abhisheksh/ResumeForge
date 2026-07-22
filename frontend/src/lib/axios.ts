@@ -1,7 +1,11 @@
 import axios from "axios";
 
+// Fallback to live Render backend URL if NEXT_PUBLIC_API_URL is not set on Vercel
+const baseURL =
+  process.env.NEXT_PUBLIC_API_URL || "https://resumeforge-ayz6.onrender.com";
+
 export const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL,
   withCredentials: true,
 });
 
@@ -15,7 +19,10 @@ API.interceptors.response.use(
     const originalRequest = error.config;
 
     // 1. Prevent infinite loop if the refresh endpoint itself fails
-    if (originalRequest?.url?.includes("/auth/refresh-token") || originalRequest?.url?.includes("/refresh-token")) {
+    if (
+      originalRequest?.url?.includes("/auth/refresh-token") ||
+      originalRequest?.url?.includes("/refresh-token")
+    ) {
       refreshTokenPromise = null;
       if (
         typeof window !== "undefined" &&
