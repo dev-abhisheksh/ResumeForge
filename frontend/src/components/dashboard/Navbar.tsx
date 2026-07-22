@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { logout } from "@/api/auth.api";
+import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 
 export interface DashboardNavbarProps {
   user?: {
@@ -35,6 +36,11 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const {data:CurrentUser, error:CurrentUserError}= useCurrentUser()
+  console.log(CurrentUser)
+
+  // const UserDetails = CurrentUserData?.data?.user || CurrentUserData?.data?.data?.user
 
   // Fallback user values
   const userName = user?.fullName || "Admin";
@@ -108,7 +114,7 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
       {/* Middle: Welcome Message (Optimized / Hidden on Mobile to Avoid Crowding) */}
       <div className="hidden md:flex items-center">
         <div className="px-4 py-1.5 bg-white border-2 border-red-600 text-xs sm:text-sm font-extrabold text-slate-900 shadow-[2px_2px_0px_0px_rgba(220,38,38,1)]">
-          Welcome back, <span className="text-red-600">Admin</span> 👋
+          Welcome back, <span className="text-red-600">{CurrentUser?.fullName}</span> 👋
         </div>
       </div>
 
@@ -153,14 +159,14 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
               <div className="px-3.5 py-2.5 border-b-2 border-red-600/20">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-red-600 border border-red-700 flex items-center justify-center text-white font-black text-xs shrink-0">
-                    {initials}
+                    {CurrentUser?.role}
                   </div>
                   <div className="flex flex-col min-w-0">
                     <p className="text-xs font-black text-slate-900 truncate">
-                      {userName}
+                      {CurrentUser.fullName}
                     </p>
                     <p className="text-[10px] font-medium text-slate-600 truncate">
-                      {userEmail}
+                      {CurrentUser.email}
                     </p>
                     <span className="mt-1 inline-flex items-center gap-1 w-max px-1.5 py-0.5 text-[9px] font-black bg-red-600 text-white">
                       <Sparkles className="w-2.5 h-2.5" />
