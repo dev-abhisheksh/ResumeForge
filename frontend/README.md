@@ -14,5 +14,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Production Deployment
 
-Deployed on Vercel with Root Directory set to `frontend`.
-Backend API connected to Render (`https://resumeforge-ayz6.onrender.com`).
+- Deployed on Vercel (Root Directory: `frontend`).
+- Connected to live Render Backend API (`https://resumeforge-ayz6.onrender.com`).
+- Last verified build: Production ready.
