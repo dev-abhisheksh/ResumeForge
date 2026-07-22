@@ -4,7 +4,13 @@ import { useMutation } from "@tanstack/react-query";
 export const useLogin = () => {
   return useMutation({
     mutationFn: login,
-    onSuccess: (res) => console.log("SUCCESS",res.data),
-    onError: (err) => console.log("ERROR",err),
+    onSuccess: (res) => {
+      if (typeof window !== "undefined") {
+        document.cookie =
+          "isLoggedIn=true; path=/; max-age=604800; SameSite=Lax";
+      }
+      console.log("SUCCESS", res.data);
+    },
+    onError: (err) => console.log("ERROR", err),
   });
 };

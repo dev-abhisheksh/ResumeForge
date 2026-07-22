@@ -14,9 +14,13 @@ const isValidToken = (token?: string): boolean => {
 export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
+  const isLoggedIn = request.cookies.get("isLoggedIn")?.value;
 
-  // Check if either token is a valid non-empty string
-  const isAuthenticated = isValidToken(accessToken) || isValidToken(refreshToken);
+  // In cross-domain setup (Vercel + Render), check client-side isLoggedIn cookie
+  const isAuthenticated =
+    isValidToken(accessToken) ||
+    isValidToken(refreshToken) ||
+    isLoggedIn === "true";
 
   const { pathname } = request.nextUrl;
   const isAuthPage =
@@ -25,9 +29,9 @@ export function middleware(request: NextRequest) {
   // Not logged in → protect private routes
   if (!isAuthenticated && !isAuthPage) {
     const response = NextResponse.redirect(new URL("/login", request.url));
-    // Clear stale cookie values if present
     response.cookies.delete("accessToken");
     response.cookies.delete("refreshToken");
+    response.cookies.delete("isLoggedIn");
     return response;
   }
 
