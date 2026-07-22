@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useResume } from "@/hooks/resume/useResumes";
-import { analyzeWithAi, getRecentAnalyses } from "@/api/resumeAnalysis.api";
+import { analyzeWithAi } from "@/api/resumeAnalysis.api";
 import { notify } from "@/lib/toast";
 import { AnalysisResultData, AnalysisWorkspaceProps } from "@/types/analysis.types";
 
@@ -11,11 +11,17 @@ import AnalysisForm from "./analysis/AnalysisForm";
 import RecentAnalysesList from "./analysis/RecentAnalysesList";
 import AnalysisLoadingCard from "./analysis/AnalysisLoadingCard";
 import AnalysisReportView from "./analysis/AnalysisReportView";
+import { useRecentAnalysis } from "@/hooks/resumeAnalysis/useRecentAnalysis";
 
 export default function AnalysisWorkspace({
   preselectedResumeId,
 }: AnalysisWorkspaceProps) {
   const { data: rawResumesData, isLoading: isLoadingResumes } = useResume();
+  const {
+    data: recentAnalyses = [],
+    isLoading: isLoadingRecentAnalysis,
+    refetch: refetchRecent,
+  } = useRecentAnalysis();
 
   // Form State & Collapsible State
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(true);
@@ -26,13 +32,11 @@ export default function AnalysisWorkspace({
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
 
-  // Analysis & History State
+  // Active Report Result State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultData | null>(null);
-  const [recentAnalyses, setRecentAnalyses] = useState<AnalysisResultData[]>([]);
-  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
 
-  // Safely extract resumes array
+  // Safely extract master resumes array
   const resumeList = Array.isArray(rawResumesData)
     ? rawResumesData
     : rawResumesData?.data || rawResumesData?.resumes || [];
@@ -46,34 +50,14 @@ export default function AnalysisWorkspace({
     }
   }, [preselectedResumeId, resumeList]);
 
-  // Fetch top 5 recent analyses
-  const fetchRecent = async () => {
-    setIsLoadingRecent(true);
-    try {
-      const response = await getRecentAnalyses();
-      const list = response.data?.analyses || response.data?.data || response.data || [];
-      if (Array.isArray(list)) {
-        setRecentAnalyses(list.slice(0, 5));
-      }
-    } catch (err) {
-      console.error("Failed to fetch recent analyses:", err);
-    } finally {
-      setIsLoadingRecent(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecent();
-  }, []);
-
-  // Log state updates to console whenever analysisResult updates
+  // Log state updates to console whenever active analysisResult changes
   useEffect(() => {
     if (analysisResult) {
       console.log("📊 Active Analysis Result in React State:", analysisResult);
     }
   }, [analysisResult]);
 
-  // Handle Form Submission
+  // Handle Form Submission for live AI analysis
   const handleRunAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -99,15 +83,20 @@ export default function AnalysisWorkspace({
         resumeId: selectedResumeId,
       });
 
-      const resData = response.data?.result || response.data?.analysis || response.data?.data || response.data;
+      const resData =
+        response.data?.result ||
+        response.data?.analysis ||
+        response.data?.data ||
+        response.data;
+
       console.log("🚀 Live Analysis API Response Received:", resData);
       setAnalysisResult(resData);
-      
+
       notify.success("Analysis Complete!", "AI ATS feedback generated successfully.");
-      
-      // Auto collapse form after successful scan to save vertical screen space
+
+      // Auto collapse form and refetch recent scans list via React Query
       setIsFormExpanded(false);
-      fetchRecent();
+      refetchRecent();
 
       // Smooth scroll down to scan report results view
       setTimeout(() => {
@@ -127,7 +116,7 @@ export default function AnalysisWorkspace({
   // Load a recent scan from history into active result view
   const handleLoadRecentItem = (item: AnalysisResultData) => {
     console.log("👁️ View Scan Report Clicked. Selected Scan Item Data:", item);
-    
+
     // Safely extract string resume ID whether item.resume is a populated object or string ID
     const resumeId =
       typeof item.resume === "object" && item.resume !== null
@@ -182,7 +171,7 @@ export default function AnalysisWorkspace({
       {/* 3. Recent AI Scans List */}
       <RecentAnalysesList
         recentAnalyses={recentAnalyses}
-        isLoadingRecent={isLoadingRecent}
+        isLoadingRecent={isLoadingRecentAnalysis}
         onSelectScan={handleLoadRecentItem}
       />
 
