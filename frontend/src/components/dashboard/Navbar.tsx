@@ -38,21 +38,13 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {data:CurrentUser, error:CurrentUserError}= useCurrentUser()
-  console.log(CurrentUser)
 
-  // const UserDetails = CurrentUserData?.data?.user || CurrentUserData?.data?.data?.user
+  const fullNameFirstLetter = CurrentUser?.fullName
+  .split(" ")
+  .map((name: string)=> name[0])
+  .join("")
+  .toUpperCase()
 
-  // Fallback user values
-  const userName = user?.fullName || "Admin";
-  const userEmail = user?.email || "admin@resumeforge.io";
-
-  // Compute initials for avatar fallback
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -131,14 +123,14 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
           >
             <div className="relative">
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 border border-red-700 flex items-center justify-center text-white font-black text-xs">
-                {initials}
+                {fullNameFirstLetter}
               </div>
               <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-emerald-500 border border-black" />
             </div>
 
             <div className="hidden sm:flex flex-col text-left pr-1">
               <span className="text-xs font-extrabold text-slate-900 leading-tight">
-                {userName}
+                {CurrentUser?.fullName}
               </span>
               <span className="text-[10px] text-red-600 font-bold">
                 Pro Member
