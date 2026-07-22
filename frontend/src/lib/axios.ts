@@ -35,6 +35,8 @@ API.interceptors.response.use(
         !window.location.pathname.startsWith("/login") &&
         !window.location.pathname.startsWith("/register")
       ) {
+        document.cookie =
+          "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         window.location.href = "/login";
       }
       return Promise.reject(error);
@@ -61,6 +63,8 @@ API.interceptors.response.use(
             !window.location.pathname.startsWith("/login") &&
             !window.location.pathname.startsWith("/register")
           ) {
+            document.cookie =
+              "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             window.location.href = "/login";
           }
           return Promise.reject(refreshError);

@@ -75,7 +75,11 @@ const Navbar: React.FC<DashboardNavbarProps> = ({
       } catch (error) {
         console.error("Logout failed:", error);
       } finally {
-        router.push("/login");
+        // Clear the client-side isLoggedIn cookie so the middleware
+        // doesn't think we're still authenticated and redirect loop
+        document.cookie =
+          "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        window.location.href = "/login";
       }
     }
   };
