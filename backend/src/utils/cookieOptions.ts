@@ -1,7 +1,9 @@
 import { CookieOptions } from "express";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const cookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
 };

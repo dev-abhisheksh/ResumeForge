@@ -13,12 +13,27 @@ import "./workers/resume.worker.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean) as string[];
+
 app.use(
-    cors({
-        origin: "http://localhost:3000",
-        credentials: true
-    })
-)
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
 
 app.use(helmet()); // Security headers
 app.use(compression()); // Gzip responses
@@ -26,7 +41,7 @@ app.use(express.json()); // Parse JSON
 app.use(cookieParser()); // Parse cookies
 app.use(morgan("dev")); // Request logging
 
-//Routes
+// Routes
 app.use("/auth", authRouter);
 app.use("/resume", resumeRouter);
 app.use("/resume-analysis", resumeAnalysisRouter);
