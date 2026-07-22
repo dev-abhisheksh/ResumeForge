@@ -3,11 +3,13 @@ import { verifyToken } from "../../middlewares/auth.middleware.js";
 import {
   getResumeRecommendationsAndGuide,
   getRecentAnalyses,
+  getDashboardStats,
 } from "./resume-analysis.controller.js";
 
 const router = express.Router();
 router.use(verifyToken);
 
+router.get("/dashboard-stats", getDashboardStats);
 router.get("/recent", getRecentAnalyses);
 router.post("/analyze/:resumeId", getResumeRecommendationsAndGuide);
 

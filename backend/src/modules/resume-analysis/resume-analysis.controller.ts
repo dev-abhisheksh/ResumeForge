@@ -1,6 +1,7 @@
 import ApiError from "../../utils/ApiError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { ResumeAnalysis } from "./resume-analysis.model.js";
 import { Resume } from "../resume/resume.model.js";
 import { parseResume } from "../../services/ai/gemini.service.js";
@@ -106,4 +107,128 @@ const getRecentAnalyses = asyncHandler(
   },
 );
 
-export { getResumeRecommendationsAndGuide, getRecentAnalyses };
+const getDashboardStats = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user!._id;
+
+    // 1. Get total master resumes uploaded count
+    const totalResumes = await Resume.countDocuments({ user: userId });
+
+    // 2. Run Aggregation Pipeline on ResumeAnalysis for overview stats & skill gaps
+    const analytics = await ResumeAnalysis.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId as string),
+        },
+      },
+      {
+        $facet: {
+          overview: [
+            {
+              $group: {
+                _id: null,
+                totalScans: { $sum: 1 },
+                avgAtsScore: { $avg: "$atsScore" },
+                maxAtsScore: { $max: "$atsScore" },
+                minAtsScore: { $min: "$atsScore" },
+                highMatchCount: {
+                  $sum: { $cond: [{ $gte: ["$atsScore", 80] }, 1, 0] },
+                },
+                mediumMatchCount: {
+                  $sum: {
+                    $cond: [
+                      {
+                        $and: [
+                          { $gte: ["$atsScore", 65] },
+                          { $lt: ["$atsScore", 80] },
+                        ],
+                      },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+                lowMatchCount: {
+                  $sum: { $cond: [{ $lt: ["$atsScore", 65] }, 1, 0] },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                totalScans: 1,
+                avgAtsScore: { $round: ["$avgAtsScore", 1] },
+                maxAtsScore: 1,
+                minAtsScore: 1,
+                highMatchCount: 1,
+                mediumMatchCount: 1,
+                lowMatchCount: 1,
+              },
+            },
+          ],
+          missingSkillGaps: [
+            { $unwind: "$missingKeywords" },
+            {
+              $group: {
+                _id: "$missingKeywords",
+                frequency: { $sum: 1 },
+              },
+            },
+            { $sort: { frequency: -1 } },
+            { $limit: 6 },
+            {
+              $project: {
+                _id: 0,
+                skill: "$_id",
+                frequency: 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    // 3. Fetch recent 4 scans for dashboard activity feed
+    const recentScans = await ResumeAnalysis.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .populate("resume", "title fileType");
+
+    const overviewData = analytics[0]?.overview[0] || {
+      totalScans: 0,
+      avgAtsScore: 0,
+      maxAtsScore: 0,
+      minAtsScore: 0,
+      highMatchCount: 0,
+      mediumMatchCount: 0,
+      lowMatchCount: 0,
+    };
+
+    const missingSkillGaps = analytics[0]?.missingSkillGaps || [];
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalResumes,
+        maxResumesLimit: 3,
+        totalScans: overviewData.totalScans || 0,
+        avgAtsScore: overviewData.avgAtsScore || 0,
+        maxAtsScore: overviewData.maxAtsScore || 0,
+        minAtsScore: overviewData.minAtsScore || 0,
+        scoreDistribution: {
+          high: overviewData.highMatchCount || 0,
+          medium: overviewData.mediumMatchCount || 0,
+          low: overviewData.lowMatchCount || 0,
+        },
+        missingSkillGaps,
+        recentScans,
+      },
+    });
+  },
+);
+
+export {
+  getResumeRecommendationsAndGuide,
+  getRecentAnalyses,
+  getDashboardStats,
+};
