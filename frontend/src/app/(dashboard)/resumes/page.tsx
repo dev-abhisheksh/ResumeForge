@@ -109,7 +109,7 @@ export default function ResumesPage() {
     try {
       await deleteResume(id);
       notify.success("Resume deleted", "One raw resume slot is now free.");
-      
+
       // Clear from details cache if present
       setDetailsCache((prev) => {
         const copy = { ...prev };
@@ -255,11 +255,10 @@ export default function ResumesPage() {
             return (
               <div
                 key={slotNumber}
-                className={`px-2.5 py-1 border-2 font-black text-xs flex items-center gap-1.5 transition-all ${
-                  isUsed
+                className={`px-2.5 py-1 border-2 font-black text-xs flex items-center gap-1.5 transition-all ${isUsed
                     ? "bg-red-600 border-red-700 text-white shadow-2xs"
                     : "bg-white border-slate-300 text-slate-400 border-dashed"
-                }`}
+                  }`}
               >
                 <span className="text-[10px] opacity-80">#{slotNumber}</span>
                 <span className="text-[11px]">{isUsed ? "USED" : "FREE"}</span>
@@ -287,11 +286,10 @@ export default function ResumesPage() {
                 <button
                   type="button"
                   onClick={() => setUploadMode("file")}
-                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
-                    uploadMode === "file"
+                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${uploadMode === "file"
                       ? "bg-red-600 text-white shadow-2xs"
                       : "text-slate-700 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   <File className="w-3.5 h-3.5" />
                   <span>File</span>
@@ -299,11 +297,10 @@ export default function ResumesPage() {
                 <button
                   type="button"
                   onClick={() => setUploadMode("text")}
-                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${
-                    uploadMode === "text"
+                  className={`px-2.5 py-1 text-xs font-black transition-all flex items-center gap-1.5 ${uploadMode === "text"
                       ? "bg-red-600 text-white shadow-2xs"
                       : "text-slate-700 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   <Code className="w-3.5 h-3.5" />
                   <span>Text / LaTeX</span>
@@ -334,11 +331,10 @@ export default function ResumesPage() {
               <button
                 type="button"
                 onClick={() => setUploadMode("file")}
-                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-                  uploadMode === "file"
+                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${uploadMode === "file"
                     ? "bg-red-600 text-white shadow-2xs"
                     : "text-slate-700 hover:text-red-600"
-                }`}
+                  }`}
               >
                 <File className="w-3.5 h-3.5" />
                 <span>File Upload</span>
@@ -346,11 +342,10 @@ export default function ResumesPage() {
               <button
                 type="button"
                 onClick={() => setUploadMode("text")}
-                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-                  uploadMode === "text"
+                className={`flex-1 py-1.5 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${uploadMode === "text"
                     ? "bg-red-600 text-white shadow-2xs"
                     : "text-slate-700 hover:text-red-600"
-                }`}
+                  }`}
               >
                 <Code className="w-3.5 h-3.5" />
                 <span>Text / LaTeX</span>
@@ -385,13 +380,12 @@ export default function ResumesPage() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-full p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${
-                      isDragging
+                    className={`w-full p-6 sm:p-8 border-2 border-dashed text-center cursor-pointer transition-all ${isDragging
                         ? "border-red-600 bg-red-50/80 scale-[1.01]"
                         : file
-                        ? "border-emerald-600 bg-emerald-50/50"
-                        : "border-slate-300 hover:border-red-600 bg-slate-50/50 hover:bg-red-50/30"
-                    }`}
+                          ? "border-emerald-600 bg-emerald-50/50"
+                          : "border-slate-300 hover:border-red-600 bg-slate-50/50 hover:bg-red-50/30"
+                      }`}
                   >
                     <input
                       ref={fileInputRef}
@@ -539,15 +533,14 @@ export default function ResumesPage() {
             return (
               <div
                 key={resume._id || index}
-                className={`w-full bg-white border-2 border-red-600 transition-all duration-200 ${
-                  isExpanded
+                className={`w-full bg-white border-2 border-red-600 transition-all duration-200 ${isExpanded
                     ? "shadow-[6px_6px_0px_0px_rgba(220,38,38,1)]"
                     : "shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(220,38,38,1)]"
-                }`}
+                  }`}
               >
                 {/* Card Top Summary Bar */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-slate-100">
-                  
+
                   {/* Left Resume Header Info */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 bg-red-600 border border-red-700 text-white font-black text-xs flex items-center justify-center shrink-0">
@@ -564,11 +557,10 @@ export default function ResumesPage() {
                         </span>
                         {resume.status && (
                           <span
-                            className={`px-2 py-0.5 text-[10px] font-black uppercase border shrink-0 ${
-                              resume.status === "completed"
+                            className={`px-2 py-0.5 text-[10px] font-black uppercase border shrink-0 ${resume.status === "completed"
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-600"
                                 : "bg-amber-50 text-amber-800 border-amber-600"
-                            }`}
+                              }`}
                           >
                             {resume.status}
                           </span>
@@ -585,7 +577,7 @@ export default function ResumesPage() {
                     {/* Download File Button */}
                     {resume.fileUrl && (
                       <a
-                        href={resume.fileUrl}
+                        href={resume.fileUrl.replace("/upload/", "/upload/fl_attachment/")}
                         target="_blank"
                         rel="noreferrer"
                         className="p-2 bg-white hover:bg-red-50 text-slate-800 hover:text-red-600 border-2 border-slate-300 hover:border-red-600 transition-colors shadow-2xs"
@@ -626,7 +618,7 @@ export default function ResumesPage() {
                   <span className="text-[11px] font-extrabold text-slate-600">
                     {isExpanded ? "Showing Master Extracted Content & Stats" : "Click expand to view full extracted text & stats"}
                   </span>
-                  
+
                   <button
                     type="button"
                     onClick={() => toggleExpand(resume._id)}

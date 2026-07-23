@@ -31,6 +31,6 @@ export const uploadToCloudinary = (
 
 export const deleteFromCloudinary = async (publicId: string) => {
   return cloudinary.uploader.destroy(publicId, {
-    resource_type: "raw",
+    resource_type: "auto",
   });
 };

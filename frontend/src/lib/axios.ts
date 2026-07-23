@@ -3,11 +3,10 @@ import axios from "axios";
 // Dynamically determine production backend URL
 const getBaseURL = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  // If envUrl is valid and not pointing to the Vercel frontend itself
   if (envUrl && envUrl.trim() !== "" && !envUrl.includes("vercel.app")) {
     return envUrl;
   }
-  return "https://resumeforge-ayz6.onrender.com";
+  // return "https://resumeforge-ayz6.onrender.com";
 };
 
 export const API = axios.create({
