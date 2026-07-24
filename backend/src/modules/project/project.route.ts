@@ -1,5 +1,5 @@
 import express from "express"
-import { addProject, fetchDetailedProject, fetchProjects } from "./project.controller.js";
+import { addProject, fetchDetailedProject, fetchProjects, removeProject } from "./project.controller.js";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -9,6 +9,6 @@ router.post("/add", addProject)
 router.get("/", fetchProjects)
 
 router.get("/:projectId", fetchDetailedProject)
-
+router.delete("/:projectId", removeProject)
 
 export default router;

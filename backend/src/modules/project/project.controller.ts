@@ -92,5 +92,28 @@ const fetchDetailedProject = asyncHandler(
   },
 );
 
+const removeProject = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { projectId } = req.params;
 
-export { addProject, fetchProjects, fetchDetailedProject };
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      throw new ApiError(400, "Valid Project ID is required");
+    }
+
+    const deletedProject = await Project.findOneAndDelete({
+      _id: projectId,
+      user: req.user!._id,
+    });
+
+    if (!deletedProject) {
+      throw new ApiError(404, "Project not found or already deleted");
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Project deleted successfully from vault",
+    });
+  },
+);
+
+export { addProject, fetchProjects, fetchDetailedProject, removeProject };
