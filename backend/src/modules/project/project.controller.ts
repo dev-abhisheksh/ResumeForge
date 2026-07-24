@@ -15,10 +15,20 @@ const addProject = asyncHandler(
       throw new ApiError(400, "Please enter techs used in this project.");
 
     const sanitizedTechStack = Array.isArray(techStack)
-    ? techStack.map((t)=> t.trim()).filter(Boolean)
-    : String(techStack).split(",").map((t)=> t.trim()).filter(Boolean)
+      ? techStack.map((t) => t.trim()).filter(Boolean)
+      : String(techStack)
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean);
 
-    const aiResult = await processProjectWithGroq(title, sanitizedTechStack, rawData);
+    const projectCount = await Project.countDocuments({user:req.user!._id})
+    if(projectCount >= 3) throw new ApiError(400, "Max three projects can be maintained on FREE acc")
+
+      const aiResult = await processProjectWithGroq(
+      title,
+      sanitizedTechStack,
+      rawData,
+    );
 
     const project = await Project.create({
       user: req.user!._id,
@@ -37,4 +47,20 @@ const addProject = asyncHandler(
   },
 );
 
-export {addProject}
+const fetchProjects = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const user = req.user!._id;
+
+    const projects = await Project.find({user})
+    .sort({createdAt: -1})
+    .select("-rawData -__v")
+
+    res.status(200).json({
+      success: true,
+      message: "Fetched all projects",
+      projects,
+    });
+  },
+);
+
+export { addProject, fetchProjects };
