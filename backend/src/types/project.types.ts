@@ -8,3 +8,7 @@ export interface FormattedProjectAI {
   summary: string;
   bulletPoints: string[];
 }
+
+export interface DeleteProjectParams{
+  projectId: string
+}

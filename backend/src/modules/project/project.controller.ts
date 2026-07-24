@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { AddProjectBody } from "../../types/project.types.js";
+import {
+  AddProjectBody,
+  DeleteProjectParams,
+} from "../../types/project.types.js";
 import ApiError from "../../utils/ApiError.js";
 import { Project } from "./project.model.js";
 import { processProjectWithGroq } from "../../services/project-ai.service.js";
+import mongoose from "mongoose";
+import { success } from "zod";
 
 const addProject = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -21,10 +26,14 @@ const addProject = asyncHandler(
           .map((t) => t.trim())
           .filter(Boolean);
 
-    const projectCount = await Project.countDocuments({user:req.user!._id})
-    if(projectCount >= 3) throw new ApiError(400, "Max three projects can be maintained on FREE acc")
+    const projectCount = await Project.countDocuments({ user: req.user!._id });
+    if (projectCount >= 3)
+      throw new ApiError(
+        400,
+        "Max three projects can be maintained on FREE acc",
+      );
 
-      const aiResult = await processProjectWithGroq(
+    const aiResult = await processProjectWithGroq(
       title,
       sanitizedTechStack,
       rawData,
@@ -51,9 +60,9 @@ const fetchProjects = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const user = req.user!._id;
 
-    const projects = await Project.find({user})
-    .sort({createdAt: -1})
-    .select("-rawData -__v")
+    const projects = await Project.find({ user })
+      .sort({ createdAt: -1 })
+      .select("-rawData -__v");
 
     res.status(200).json({
       success: true,
@@ -63,4 +72,25 @@ const fetchProjects = asyncHandler(
   },
 );
 
-export { addProject, fetchProjects };
+const fetchDetailedProject = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { projectId } = req.params;
+    if (!projectId) throw new ApiError(400, "Project ID is required");
+
+    const project = await Project.findOne({
+      _id: projectId,
+      user: req.user!._id,
+    }).select("-__v");
+
+    if (!project) throw new ApiError(404, "Project not found");
+
+    res.status(200).json({
+      success: true,
+      message: "Fetched project details successfully.",
+      project,
+    });
+  },
+);
+
+
+export { addProject, fetchProjects, fetchDetailedProject };
