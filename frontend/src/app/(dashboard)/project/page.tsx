@@ -12,23 +12,27 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  Trash2,
 } from "lucide-react";
 import { useProjects } from "@/hooks/project/useProjects";
+import { useDeleteProject } from "@/hooks/project/useDeleteProject";
 import { addProject } from "@/api/project.api";
 import { ProjectsItem } from "@/types/project.types";
 import { notify } from "@/lib/toast";
 
 export default function ProjectsPage() {
   const { data: rawProjectsData, isLoading, isError, error, refetch } = useProjects();
+  const deleteProjectMutation = useDeleteProject();
 
   // Collapsible Form State
   const [isFormOpen, setIsFormOpen] = useState(true);
 
-  // Add Project Inputs
+  // Add & Delete Project Inputs
   const [title, setTitle] = useState("");
   const [techStackInput, setTechStackInput] = useState("");
   const [rawData, setRawData] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Safely extract projects array from React Query response
   const projectList: ProjectsItem[] = Array.isArray(rawProjectsData)
@@ -38,6 +42,25 @@ export default function ProjectsPage() {
   const projectCount = projectList.length;
   const maxAllowed = 3;
   const isQuotaFull = projectCount >= maxAllowed;
+
+  // Delete Project Handler
+  const handleDeleteProject = async (projectId?: string) => {
+    if (!projectId) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this project from your vault?");
+    if (!confirmDelete) return;
+
+    setDeletingId(projectId);
+    try {
+      await deleteProjectMutation.mutateAsync(projectId);
+      notify.success("Project Deleted", "Project removed from your vault. Slot freed up!");
+      refetch();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to delete project.";
+      notify.error("Delete Failed", msg);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Submit Handler
   const handleAddProject = async (e: React.FormEvent) => {
@@ -295,7 +318,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                {/* Tech Stack Badges */}
+                {/* Tech Stack Badges + Delete Button */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {project.techStack?.map((tech: string, tIdx: number) => (
                     <span
@@ -305,6 +328,19 @@ export default function ProjectsPage() {
                       {tech}
                     </span>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProject(project._id)}
+                    disabled={deletingId === project._id}
+                    title="Delete Project"
+                    className="p-1 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-600/40 hover:border-red-600 transition-colors ml-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {deletingId === project._id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
