@@ -96,7 +96,7 @@ const removeProject = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { projectId } = req.params;
 
-    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+    if (!projectId || typeof projectId !== "string" || !mongoose.Types.ObjectId.isValid(projectId)) {
       throw new ApiError(400, "Valid Project ID is required");
     }
 
