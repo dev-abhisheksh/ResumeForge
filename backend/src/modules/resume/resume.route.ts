@@ -13,6 +13,7 @@ router.use(verifyToken);
 
 router.post("/upload", upload.single("resume"), uploadResume);
 router.get("/", myResumes);
+router.get("/my-resumes", myResumes); // Route alias for fetching user's resumes
 
 router.delete("/:resumeId", deleteResume);
 router.get("/:resumeId", detailedResume);

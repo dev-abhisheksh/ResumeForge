@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { UploadResumeBody } from "../../types/resume.types.js";
 import ApiError from "../../utils/ApiError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -102,7 +103,9 @@ const myResumes = asyncHandler(
 const detailedResume = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
-    if (!resumeId) throw new ApiError(400, "Resume ID is required");
+    if (!resumeId || typeof resumeId !== "string" || !mongoose.Types.ObjectId.isValid(resumeId)) {
+      throw new ApiError(400, "Valid Resume ID is required");
+    }
 
     const resume = await Resume.findOne({
       _id: resumeId,
