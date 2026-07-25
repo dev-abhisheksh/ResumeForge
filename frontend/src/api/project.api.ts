@@ -13,7 +13,7 @@ export const fetchProjects = async (): Promise<ProjectsItem[]> => {
 };
 
 export const addProject = (data: AddProjectPayload) =>
-  API.post("/project/", data);
+  API.post("/project/add", data);
 
 export const deleteProject = (projectId: string) =>
   API.delete(`/project/${projectId}`);

@@ -42,21 +42,22 @@ const navItems = [
     badge: "AI",
   },
   {
-    label: "Profile",
-    href: "/profile",
-    icon: User,
-  },
-  {
     label: "Projects",
     href: "/projects",
     icon: Projector
   },
   {
+    label: "Profile",
+    href: "/profile",
+    icon: User,
+  },
+
+  {
     label: "Settings",
     href: "/settings",
     icon: Settings,
   },
-  
+
 ];
 
 const Sidebar: React.FC<DashboardSidebarProps> = ({

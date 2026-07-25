@@ -55,6 +55,8 @@ export const config = {
     "/projects/:path*",
     "/project",
     "/project/:path*",
+    "/settings/:path*",
+    "/settings",
     "/analysis",
     "/analysis/:path*",
     "/login",

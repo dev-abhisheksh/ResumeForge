@@ -175,7 +175,7 @@ export default function ProjectsPage() {
 
                   <div className="space-y-1">
                     <label className="block text-xs font-black text-slate-900 uppercase tracking-wider">
-                      Tech Stack (Comma Separated) *
+                      Tech Stack (Comma Separated) <span className="text-red-600 ">*</span>
                     </label>
                     <input
                       type="text"
