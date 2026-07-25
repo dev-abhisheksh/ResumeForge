@@ -17,13 +17,20 @@ export const API = axios.create({
 // Shared promise to handle concurrent 401 requests without duplicate refresh calls
 let refreshTokenPromise: Promise<unknown> | null = null;
 
-// Once true, ALL 401s are rejected instantly — no more refresh attempts
+// Once true, ALL 401s are rejected instantly — prevents loop during logout redirect
 let isForceLoggingOut = false;
 
-// Clear auth state and redirect to login (runs only once)
+// Call this after a successful login to reset the logout guard
+export const resetAuthState = () => {
+  isForceLoggingOut = false;
+  refreshTokenPromise = null;
+};
+
+// Clear auth state and redirect to login (runs only once per session)
 const forceLogout = () => {
   if (isForceLoggingOut) return;
   isForceLoggingOut = true;
+  refreshTokenPromise = null;
 
   if (
     typeof window !== "undefined" &&
