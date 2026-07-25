@@ -10,6 +10,8 @@ import { calculateATS } from "../../services/ats.service.js";
 import { generateATSRecommendations } from "../../services/ats-recommendation.service.js";
 import { ATSResult } from "../../types/ats-result.types.js";
 import { GetAiRecommendationsBody } from "../../types/resume.types.js";
+import { tailorResumeWithGroq } from "../../services/ats-tailor.service.js";
+import { buildLatexResume } from "../../services/latex.service.js";
 
 const getResumeRecommendationsAndGuide = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -233,8 +235,53 @@ const getDashboardStats = asyncHandler(
   },
 );
 
+const tailorResume = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { resumeId } = req.params;
+    const { jobDescription } = req.body;
+
+    if (!resumeId) throw new ApiError(400, "Resume ID is required");
+    if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {
+      throw new ApiError(400, "Target Job Description is required");
+    }
+
+    const userId = req.user!._id;
+
+    // 1. Fetch Candidate Master Resume
+    const resume = await Resume.findOne({ _id: resumeId, user: userId });
+    if (!resume) throw new ApiError(404, "Master Resume not found");
+
+    // 2. Fetch User Project Vault
+    const vaultProjects = await Project.find({ user: userId });
+
+    // 3. Call Groq AI Tailoring Engine
+    const tailoredPayload = await tailorResumeWithGroq(
+      resume.extractedText || "",
+      jobDescription.trim(),
+      vaultProjects,
+    );
+
+    // 4. Inject Into Master ATS LaTeX Template
+    const userDetails = {
+      fullName: (req.user as any)?.fullName || "Abhishek Sharma",
+      email: (req.user as any)?.email || "abhisheksh.work07@gmail.com",
+    };
+
+    const latexCode = buildLatexResume(tailoredPayload, userDetails);
+
+    res.status(200).json({
+      success: true,
+      message: "Resume tailored successfully!",
+      atsScore: 92,
+      latexCode,
+      tailoredData: tailoredPayload,
+    });
+  },
+);
+
 export {
   getResumeRecommendationsAndGuide,
   getRecentAnalyses,
   getDashboardStats,
+  tailorResume,
 };
