@@ -1,15 +1,15 @@
 import { ATS_LATEX_TEMPLATE } from "../templates/ats-resume.tex.js";
 
 /**
- * Escapes special LaTeX characters to prevent compilation errors
+ * Escapes special LaTeX characters to prevent compiler crashes.
  */
-export function escapeLatex(str: string): string {
-  if (!str) return "";
-  return str
+export function escapeLatex(text: string): string {
+  if (!text) return "";
+  return text
     .replace(/\\/g, "\\textbackslash{}")
-    .replace(/&/g, "\\&")
     .replace(/%/g, "\\%")
     .replace(/\$/g, "\\$")
+    .replace(/&/g, "\\&")
     .replace(/#/g, "\\#")
     .replace(/_/g, "\\_")
     .replace(/\{/g, "\\{")
@@ -30,6 +30,7 @@ export interface UserDetails {
 
 export interface TailoredProjectItem {
   title: string;
+  summary?: string;
   techStack?: string[] | string;
   date?: string;
   bulletPoints: string[];
@@ -56,7 +57,8 @@ export interface TailoredResumePayload {
 }
 
 /**
- * Injects tailored candidate data into the Master ATS LaTeX Template
+ * Injects candidate data into the Master ATS LaTeX Template.
+ * Strictly preserves candidate's authentic summary, contact links, skills & experience while swapping projects!
  */
 export function buildLatexResume(
   payload: TailoredResumePayload,
@@ -64,26 +66,28 @@ export function buildLatexResume(
 ): string {
   let latex = ATS_LATEX_TEMPLATE;
 
-  // 1. Candidate Contact Information
-  latex = latex.replace(/\{\{FULL_NAME\}\}/g, escapeLatex(user.fullName || "Developer"));
-  latex = latex.replace(/\{\{PHONE\}\}/g, escapeLatex(user.phone || "+91 9175563988"));
-  latex = latex.replace(/\{\{EMAIL\}\}/g, escapeLatex(user.email || "developer@example.com"));
+  // 1. Candidate Contact Information (Dynamic per logged-in user)
+  latex = latex.replace(/\{\{FULL_NAME\}\}/g, escapeLatex(user.fullName || "Candidate"));
+  latex = latex.replace(/\{\{PHONE\}\}/g, escapeLatex(user.phone || ""));
+  latex = latex.replace(/\{\{EMAIL\}\}/g, escapeLatex(user.email || "candidate@example.com"));
   latex = latex.replace(/\{\{LINKEDIN_URL\}\}/g, user.linkedinUrl || "https://linkedin.com");
-  latex = latex.replace(/\{\{LINKEDIN_TEXT\}\}/g, escapeLatex(user.linkedinText || "linkedin.com/in/profile"));
+  latex = latex.replace(/\{\{LINKEDIN_TEXT\}\}/g, escapeLatex(user.linkedinText || "linkedin.com/in/candidate"));
   latex = latex.replace(/\{\{GITHUB_URL\}\}/g, user.githubUrl || "https://github.com");
-  latex = latex.replace(/\{\{GITHUB_TEXT\}\}/g, escapeLatex(user.githubText || "github.com/profile"));
+  latex = latex.replace(/\{\{GITHUB_TEXT\}\}/g, escapeLatex(user.githubText || "github.com/candidate"));
 
-  // 2. Professional Summary
+  // 2. Professional Summary (Preserve Authentic Master Summary)
+  const defaultSummary = "Motivated Full Stack Developer with hands-on experience building web applications using React.js, Node.js, and MongoDB. Skilled in developing responsive UIs with Tailwind CSS, building RESTful APIs with Express.js, implementing JWT authentication, Redis caching, BullMQ, and Socket.IO. Passionate about writing clean, scalable code and continuously learning modern technologies.";
+  
   latex = latex.replace(
     /\{\{PROFESSIONAL_SUMMARY\}\}/g,
-    escapeLatex(payload.professionalSummary || "Motivated Full Stack Developer with hands-on experience building scalable applications."),
+    escapeLatex(payload.professionalSummary || defaultSummary),
   );
 
-  // 3. Technical Skills Section
-  const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "JavaScript, TypeScript, HTML5, CSS3";
-  const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "Node.js, Express.js, REST APIs, Socket.IO, BullMQ";
-  const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "MongoDB, Redis";
-  const toolsStr = payload.skills?.tools?.map(escapeLatex).join(", ") || "Git, GitHub, Docker, Postman, Vercel";
+  // 3. Technical Skills Section (Authentic Master Skills)
+  const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "JavaScript (ES6+), React.js, HTML5, CSS3, Tailwind CSS";
+  const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "Node.js, NestJS (Familiar), Express.js, Socket.IO, WebSockets, BullMQ, GenAI";
+  const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "MongoDB (Aggregation, Indexing, Schema Design), Redis";
+  const toolsStr = payload.skills?.tools?.map(escapeLatex).join(", ") || "JWT, RBAC, REST APIs, Swagger, Git, GitHub, Postman, Vercel, Render, Docker";
 
   const skillsBlock = `\\textbf{Languages \\& Frontend}{: ${languagesStr}} \\\\
 \\textbf{Backend \\& Real-Time}{: ${backendStr}} \\\\
@@ -92,34 +96,45 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{SKILLS_SECTION\}\}/g, skillsBlock);
 
-  // 4. Projects Section (Swapped Vault Projects)
+  // 4. Projects Section (Swapped Vault Projects with Metric Bullets & Definition)
   const projectsBlocks = (payload.selectedProjects || [])
+    .slice(0, 3)
     .map((proj) => {
       const techStr = Array.isArray(proj.techStack)
         ? proj.techStack.map(escapeLatex).join(", ")
         : escapeLatex(proj.techStack || "");
 
+      const summaryLine = proj.summary
+        ? `      \\item\\small{\\textit{${escapeLatex(proj.summary)}}}`
+        : "";
+
       const bullets = (proj.bulletPoints || [])
+        .slice(0, 3)
         .map((b) => `      \\resumeItem{${escapeLatex(b)}}`)
         .join("\n");
 
       return [
         "    \\resumeProjectHeading",
         `      {\\textbf{${escapeLatex(proj.title)}}${techStr ? ` $|$ \\emph{${techStr}}` : ""}}{${escapeLatex(proj.date || "2026")}}`,
+        summaryLine,
         "      \\resumeItemListStart",
         bullets,
         "      \\resumeItemListEnd",
         "      \\vspace{-13pt}",
-      ].join("\n");
+      ]
+        .filter(Boolean)
+        .join("\n");
     })
     .join("\n\n");
 
   latex = latex.replace(/\{\{PROJECTS_SECTION\}\}/g, projectsBlocks);
 
-  // 5. Experience Section
+  // 5. Experience Section (Authentic Internships Verbatim)
   const experienceBlocks = (payload.experience || [])
+    .slice(0, 2)
     .map((exp) => {
       const bullets = (exp.bulletPoints || [])
+        .slice(0, 2)
         .map((b) => `      \\resumeItem{${escapeLatex(b)}}`)
         .join("\n");
 
@@ -139,7 +154,13 @@ export function buildLatexResume(
     "      {WordPress Developer Intern}{September 2024 -- November 2024}",
     "      {Technuva}{Remote}",
     "      \\resumeItemListStart",
-    "        \\resumeItem{Developed responsive sites using custom PHP themes; improved SEO and performance to 85+ PageSpeed score.}",
+    "        \\resumeItem{Developed 5+ responsive WordPress sites using custom PHP themes; improved SEO and performance to 85+ PageSpeed score.}",
+    "      \\resumeItemListEnd",
+    "    \\resumeSubheading",
+    "      {AI Intern}{May 2024 -- July 2024}",
+    "      {Lenovo Leap \\& Motorola}{Remote}",
+    "      \\resumeItemListStart",
+    "        \\resumeItem{Collaborated on enterprise AI solutions focusing on machine learning implementation and data analysis.}",
     "      \\resumeItemListEnd",
   ].join("\n");
 
@@ -148,19 +169,19 @@ export function buildLatexResume(
     experienceBlocks || defaultExperience,
   );
 
-  // 6. Education & Certifications Defaults
+  // 6. Education & Certifications (Authentic Master Data)
   const defaultEducation = [
     "    \\resumeSubheading",
     "      {Bachelor of Computer Applications (BCA)}{Expected 2026}",
-    "      {Don Bosco College, Panjim, Goa}{Current SGPA: 8.35}",
+    "      {Don Bosco College, Panjim, Goa}{Current SGPA: 8.35 (Sem 5)}",
   ].join("\n");
 
   latex = latex.replace(/\{\{EDUCATION_SECTION\}\}/g, defaultEducation);
 
   const defaultCertifications = [
-    "\\textbf{Certification}{: The Complete Web Development Bootcamp -- Udemy} \\\\",
+    "\\textbf{Certification}{: The Complete Web Development Bootcamp -- Dr. Angela Yu, Udemy (2024)} \\\\",
     "\\textbf{Interests}{: Full-Stack Architecture, Scalable Systems Design, Real-Time Applications} \\\\",
-    "\\textbf{Languages}{: English, Hindi}",
+    "\\textbf{Languages}{: English (Intermediate), Hindi (Native)}",
   ].join("\n");
 
   latex = latex.replace(/\{\{CERTIFICATIONS_SECTION\}\}/g, defaultCertifications);

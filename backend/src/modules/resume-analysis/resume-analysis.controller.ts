@@ -261,10 +261,15 @@ const tailorResume = asyncHandler(
       vaultProjects,
     );
 
-    // 4. Inject Into Master ATS LaTeX Template
+    // 4. Inject Into Master ATS LaTeX Template (100% Dynamic per Logged-in User)
     const userDetails = {
-      fullName: (req.user as any)?.fullName || "Abhishek Sharma",
-      email: (req.user as any)?.email || "abhisheksh.work07@gmail.com",
+      fullName: (req.user as any)?.fullName || (req.user as any)?.name || "Candidate",
+      email: (req.user as any)?.email || "",
+      phone: (req.user as any)?.phone || "",
+      linkedinUrl: (req.user as any)?.linkedinUrl || "",
+      linkedinText: (req.user as any)?.linkedinText || "",
+      githubUrl: (req.user as any)?.githubUrl || "",
+      githubText: (req.user as any)?.githubText || "",
     };
 
     const latexCode = buildLatexResume(tailoredPayload, userDetails);
