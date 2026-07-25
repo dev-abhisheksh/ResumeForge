@@ -10,6 +10,7 @@ import {
   User,
   Settings,
   X,
+  Projector,
 } from "lucide-react";
 import { useResume } from "@/hooks/resume/useResumes";
 
@@ -46,10 +47,16 @@ const navItems = [
     icon: User,
   },
   {
+    label: "Projects",
+    href: "/projects",
+    icon: Projector
+  },
+  {
     label: "Settings",
     href: "/settings",
     icon: Settings,
   },
+  
 ];
 
 const Sidebar: React.FC<DashboardSidebarProps> = ({

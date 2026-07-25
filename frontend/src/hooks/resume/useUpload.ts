@@ -1,8 +1,8 @@
 import { uploadMaterial } from "@/api/resume.api";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import {  useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useUpload = () => {
-  const queryClient = new QueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: uploadMaterial,
 

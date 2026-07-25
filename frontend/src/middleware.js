@@ -41,6 +41,8 @@ exports.config = {
         "/profile/:path*",
         "/resumes",
         "/resumes/:path*",
+        "/projects",
+        "/projects/:path*",
         "/analysis",
         "/analysis/:path*",
         "/login",
