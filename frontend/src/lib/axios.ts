@@ -17,31 +17,47 @@ export const API = axios.create({
 // Shared promise to handle concurrent 401 requests without duplicate refresh calls
 let refreshTokenPromise: Promise<unknown> | null = null;
 
+// Once true, ALL 401s are rejected instantly — no more refresh attempts
+let isForceLoggingOut = false;
+
+// Clear auth state and redirect to login (runs only once)
+const forceLogout = () => {
+  if (isForceLoggingOut) return;
+  isForceLoggingOut = true;
+
+  if (
+    typeof window !== "undefined" &&
+    !window.location.pathname.startsWith("/login") &&
+    !window.location.pathname.startsWith("/register")
+  ) {
+    document.cookie =
+      "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    window.location.href = "/login";
+  }
+};
+
 API.interceptors.response.use(
   (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Prevent infinite loop if the refresh endpoint itself fails
+    // ⛔ Already logging out → reject everything immediately, no retries
+    if (isForceLoggingOut) {
+      return Promise.reject(error);
+    }
+
+    // 1. If the refresh endpoint itself failed → force logout, don't retry
     if (
       originalRequest?.url?.includes("/auth/refresh-token") ||
       originalRequest?.url?.includes("/refresh-token")
     ) {
       refreshTokenPromise = null;
-      if (
-        typeof window !== "undefined" &&
-        !window.location.pathname.startsWith("/login") &&
-        !window.location.pathname.startsWith("/register")
-      ) {
-        document.cookie =
-          "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        window.location.href = "/login";
-      }
+      forceLogout();
       return Promise.reject(error);
     }
 
-    // 2. Intercept 401 Unauthorized errors for initial token expiration
+    // 2. Intercept 401 errors — attempt token refresh ONCE per request
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -57,15 +73,7 @@ API.interceptors.response.use(
         .then(() => API(originalRequest))
         .catch((refreshError) => {
           refreshTokenPromise = null;
-          if (
-            typeof window !== "undefined" &&
-            !window.location.pathname.startsWith("/login") &&
-            !window.location.pathname.startsWith("/register")
-          ) {
-            document.cookie =
-              "isLoggedIn=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            window.location.href = "/login";
-          }
+          forceLogout();
           return Promise.reject(refreshError);
         });
     }
