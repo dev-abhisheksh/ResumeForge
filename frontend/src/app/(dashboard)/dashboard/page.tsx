@@ -16,6 +16,7 @@ import {
   Plus,
   BarChart2,
   ChevronRight,
+  FolderCode,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
 import { getDashboardStats } from "@/api/resumeAnalysis.api";
@@ -23,6 +24,8 @@ import { getDashboardStats } from "@/api/resumeAnalysis.api";
 export interface DashboardStatsData {
   totalResumes: number;
   maxResumesLimit: number;
+  totalProjects?: number;
+  maxProjectsLimit?: number;
   totalScans: number;
   avgAtsScore: number;
   maxAtsScore: number;
@@ -62,6 +65,8 @@ export default function DashboardPage() {
 
   const totalResumes = stats?.totalResumes ?? 0;
   const maxLimit = stats?.maxResumesLimit ?? 3;
+  const totalProjects = stats?.totalProjects ?? 0;
+  const maxProjectsLimit = stats?.maxProjectsLimit ?? 3;
   const totalScans = stats?.totalScans ?? 0;
   const avgScore = stats?.avgAtsScore ?? 0;
   const maxScore = stats?.maxAtsScore ?? 0;
@@ -96,13 +101,20 @@ export default function DashboardPage() {
           </div>
 
           {/* Action CTAs (Side by Side Inline Buttons) */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
             <Link
               href="/resumes"
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white hover:bg-red-50 text-slate-900 text-xs font-black border-2 border-red-600 transition-colors shadow-2xs whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-red-600" />
               <span>Upload Resume</span>
+            </Link>
+            <Link
+              href="/project"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white hover:bg-red-50 text-slate-900 text-xs font-black border-2 border-red-600 transition-colors shadow-2xs whitespace-nowrap"
+            >
+              <FolderCode className="w-3.5 h-3.5 text-red-600" />
+              <span>Project Vault</span>
             </Link>
             <Link
               href="/analysis"
@@ -116,7 +128,7 @@ export default function DashboardPage() {
 
         {/* Subtitle Description */}
         <p className="text-xs font-bold text-slate-600">
-          Track your master resumes, monitor ATS match scores across target job postings, and fix skill gaps.
+          Track your master resumes, store verified vault projects, monitor ATS match scores, and fix skill gaps.
         </p>
       </div>
 
@@ -152,8 +164,27 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Card 2: Total AI Scans */}
+            {/* Card 2: Vault Projects */}
             <div className="p-4 bg-white border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                  Project Vault
+                </span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-2xl font-black text-slate-900">{totalProjects}</span>
+                  <span className="text-xs font-extrabold text-slate-400">/ {maxProjectsLimit} Slots</span>
+                </div>
+                <p className="text-[11px] font-bold text-slate-600 mt-0.5">
+                  {totalProjects >= maxProjectsLimit ? "Quota Full (3/3)" : `${maxProjectsLimit - totalProjects} slots available`}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center font-black shrink-0 shadow-2xs">
+                <FolderCode className="w-5 h-5 stroke-[2.2]" />
+              </div>
+            </div>
+
+            {/* Card 3: Total AI Scans */}
+            {/* <div className="p-4 bg-white border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
                   Total AI Scans
@@ -168,7 +199,7 @@ export default function DashboardPage() {
               <div className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center font-black shrink-0 shadow-2xs">
                 <Sparkles className="w-5 h-5 stroke-[2.2]" />
               </div>
-            </div>
+            </div> */}
 
             {/* Card 3: Average ATS Score */}
             <div className="p-4 bg-white border-2 border-red-600 shadow-[3px_3px_0px_0px_rgba(220,38,38,1)] flex items-center justify-between">

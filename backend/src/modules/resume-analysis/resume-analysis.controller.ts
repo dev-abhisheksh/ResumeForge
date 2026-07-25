@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { ResumeAnalysis } from "./resume-analysis.model.js";
 import { Resume } from "../resume/resume.model.js";
+import { Project } from "../project/project.model.js";
 import { parseResume } from "../../services/ai/gemini.service.js";
 import { calculateATS } from "../../services/ats.service.js";
 import { generateATSRecommendations } from "../../services/ats-recommendation.service.js";
@@ -204,6 +205,9 @@ const getDashboardStats = asyncHandler(
       lowMatchCount: 0,
     };
 
+    // 1. Get total master resumes & vault projects count
+    const totalProjects = await Project.countDocuments({ user: userId });
+
     const missingSkillGaps = analytics[0]?.missingSkillGaps || [];
 
     res.status(200).json({
@@ -211,6 +215,8 @@ const getDashboardStats = asyncHandler(
       stats: {
         totalResumes,
         maxResumesLimit: 3,
+        totalProjects,
+        maxProjectsLimit: 3,
         totalScans: overviewData.totalScans || 0,
         avgAtsScore: overviewData.avgAtsScore || 0,
         maxAtsScore: overviewData.maxAtsScore || 0,
