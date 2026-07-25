@@ -28,6 +28,23 @@ export interface UserDetails {
   githubText?: string;
 }
 
+export interface ContactInfoPayload {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  linkedinText?: string;
+  linkedinUrl?: string;
+  githubText?: string;
+  githubUrl?: string;
+}
+
+export interface EducationItemPayload {
+  institution: string;
+  degree: string;
+  dates?: string;
+  details?: string;
+}
+
 export interface TailoredProjectItem {
   title: string;
   summary?: string;
@@ -44,8 +61,15 @@ export interface TailoredExperienceItem {
   bulletPoints: string[];
 }
 
+export interface CertificationAchievementPayload {
+  title: string;
+  details?: string;
+}
+
 export interface TailoredResumePayload {
+  contactInfo?: ContactInfoPayload;
   professionalSummary: string;
+  education?: EducationItemPayload[];
   skills: {
     languages?: string[];
     backend?: string[];
@@ -54,11 +78,12 @@ export interface TailoredResumePayload {
   };
   selectedProjects: TailoredProjectItem[];
   experience?: TailoredExperienceItem[];
+  certificationsAndAchievements?: CertificationAchievementPayload[];
 }
 
 /**
  * Injects candidate data into the Master ATS LaTeX Template.
- * Strictly preserves candidate's authentic summary, contact links, skills & experience while swapping projects!
+ * 100% Dynamic for ANY uploaded Master Resume (Sarthak, Abhishek, or any candidate)!
  */
 export function buildLatexResume(
   payload: TailoredResumePayload,
@@ -66,37 +91,47 @@ export function buildLatexResume(
 ): string {
   let latex = ATS_LATEX_TEMPLATE;
 
-  // 1. Candidate Contact Information (Dynamic per logged-in user)
-  latex = latex.replace(/\{\{FULL_NAME\}\}/g, escapeLatex(user.fullName || "Candidate"));
-  latex = latex.replace(/\{\{PHONE\}\}/g, escapeLatex(user.phone || ""));
-  latex = latex.replace(/\{\{EMAIL\}\}/g, escapeLatex(user.email || "candidate@example.com"));
-  latex = latex.replace(/\{\{LINKEDIN_URL\}\}/g, user.linkedinUrl || "https://linkedin.com");
-  latex = latex.replace(/\{\{LINKEDIN_TEXT\}\}/g, escapeLatex(user.linkedinText || "linkedin.com/in/candidate"));
-  latex = latex.replace(/\{\{GITHUB_URL\}\}/g, user.githubUrl || "https://github.com");
-  latex = latex.replace(/\{\{GITHUB_TEXT\}\}/g, escapeLatex(user.githubText || "github.com/candidate"));
+  // 1. Contact Information (Extracted from Uploaded Master Resume -> User Account -> Generic Fallback)
+  const fullName = payload.contactInfo?.fullName || user.fullName || "Candidate";
+  const phone = payload.contactInfo?.phone || user.phone || "";
+  const email = payload.contactInfo?.email || user.email || "";
+  const linkedinText = payload.contactInfo?.linkedinText || user.linkedinText || (payload.contactInfo?.linkedinUrl ? "linkedin.com/in/profile" : "");
+  const linkedinUrl = payload.contactInfo?.linkedinUrl || user.linkedinUrl || "https://linkedin.com";
+  const githubText = payload.contactInfo?.githubText || user.githubText || (payload.contactInfo?.githubUrl ? "github.com/profile" : "");
+  const githubUrl = payload.contactInfo?.githubUrl || user.githubUrl || "https://github.com";
 
-  // 2. Professional Summary (Preserve Authentic Master Summary)
-  const defaultSummary = "Motivated Full Stack Developer with hands-on experience building web applications using React.js, Node.js, and MongoDB. Skilled in developing responsive UIs with Tailwind CSS, building RESTful APIs with Express.js, implementing JWT authentication, Redis caching, BullMQ, and Socket.IO. Passionate about writing clean, scalable code and continuously learning modern technologies.";
-  
+  latex = latex.replace(/\{\{FULL_NAME\}\}/g, escapeLatex(fullName));
+  latex = latex.replace(/\{\{PHONE\}\}/g, escapeLatex(phone));
+  latex = latex.replace(/\{\{EMAIL\}\}/g, escapeLatex(email));
+  latex = latex.replace(/\{\{LINKEDIN_URL\}\}/g, linkedinUrl);
+  latex = latex.replace(/\{\{LINKEDIN_TEXT\}\}/g, escapeLatex(linkedinText));
+  latex = latex.replace(/\{\{GITHUB_URL\}\}/g, githubUrl);
+  latex = latex.replace(/\{\{GITHUB_TEXT\}\}/g, escapeLatex(githubText));
+
+  // 2. Professional Summary (Extracted from Uploaded Master Resume & JD-Aligned)
   latex = latex.replace(
     /\{\{PROFESSIONAL_SUMMARY\}\}/g,
-    escapeLatex(payload.professionalSummary || defaultSummary),
+    escapeLatex(payload.professionalSummary || ""),
   );
 
-  // 3. Technical Skills Section (Authentic Master Skills)
-  const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "JavaScript (ES6+), React.js, HTML5, CSS3, Tailwind CSS";
-  const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "Node.js, NestJS (Familiar), Express.js, Socket.IO, WebSockets, BullMQ, GenAI";
-  const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "MongoDB (Aggregation, Indexing, Schema Design), Redis";
-  const toolsStr = payload.skills?.tools?.map(escapeLatex).join(", ") || "JWT, RBAC, REST APIs, Swagger, Git, GitHub, Postman, Vercel, Render, Docker";
+  // 3. Technical Skills (Extracted from Uploaded Master Resume)
+  const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "";
+  const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "";
+  const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "";
+  const toolsStr = payload.skills?.tools?.map(escapeLatex).join(", ") || "";
 
-  const skillsBlock = `\\textbf{Languages \\& Frontend}{: ${languagesStr}} \\\\
-\\textbf{Backend \\& Real-Time}{: ${backendStr}} \\\\
-\\textbf{Databases \\& Caching}{: ${dbStr}} \\\\
-\\textbf{Tools \\& Concepts}{: ${toolsStr}}`;
+  const skillsBlock = [
+    languagesStr ? `\\textbf{Languages \\& Frontend}{: ${languagesStr}}` : "",
+    backendStr ? `\\textbf{Backend \\& Real-Time}{: ${backendStr}}` : "",
+    dbStr ? `\\textbf{Databases \\& Caching}{: ${dbStr}}` : "",
+    toolsStr ? `\\textbf{Tools \\& Concepts}{: ${toolsStr}}` : "",
+  ]
+    .filter(Boolean)
+    .join(" \\\\\n");
 
-  latex = latex.replace(/\{\{SKILLS_SECTION\}\}/g, skillsBlock);
+  latex = latex.replace(/\{\{SKILLS_SECTION\}\}/g, skillsBlock || "\\textbf{Skills}{: General Software Engineering}");
 
-  // 4. Projects Section (Swapped Vault Projects with Metric Bullets & Definition)
+  // 4. Projects Section (Swapped Vault Projects with Metric Bullets & Overview)
   const projectsBlocks = (payload.selectedProjects || [])
     .slice(0, 3)
     .map((proj) => {
@@ -129,62 +164,48 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{PROJECTS_SECTION\}\}/g, projectsBlocks);
 
-  // 5. Experience Section (Authentic Internships Verbatim)
+  // 5. Experience Section (Extracted from Uploaded Master Resume)
   const experienceBlocks = (payload.experience || [])
-    .slice(0, 2)
+    .slice(0, 3)
     .map((exp) => {
       const bullets = (exp.bulletPoints || [])
-        .slice(0, 2)
         .map((b) => `      \\resumeItem{${escapeLatex(b)}}`)
         .join("\n");
 
       return [
         "    \\resumeSubheading",
-        `      {${escapeLatex(exp.role)}}{${escapeLatex(exp.dates)}}`,
-        `      {${escapeLatex(exp.company)}}{${escapeLatex(exp.location || "Remote")}}`,
-        "      \\resumeItemListStart",
+        `      {${escapeLatex(exp.role || "Developer")}}{${escapeLatex(exp.dates || "")}}`,
+        `      {${escapeLatex(exp.company || "")}}{${escapeLatex(exp.location || "Remote")}}`,
+        bullets ? "      \\resumeItemListStart" : "",
         bullets,
-        "      \\resumeItemListEnd",
-      ].join("\n");
+        bullets ? "      \\resumeItemListEnd" : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
     })
     .join("\n\n");
 
-  const defaultExperience = [
-    "    \\resumeSubheading",
-    "      {WordPress Developer Intern}{September 2024 -- November 2024}",
-    "      {Technuva}{Remote}",
-    "      \\resumeItemListStart",
-    "        \\resumeItem{Developed 5+ responsive WordPress sites using custom PHP themes; improved SEO and performance to 85+ PageSpeed score.}",
-    "      \\resumeItemListEnd",
-    "    \\resumeSubheading",
-    "      {AI Intern}{May 2024 -- July 2024}",
-    "      {Lenovo Leap \\& Motorola}{Remote}",
-    "      \\resumeItemListStart",
-    "        \\resumeItem{Collaborated on enterprise AI solutions focusing on machine learning implementation and data analysis.}",
-    "      \\resumeItemListEnd",
-  ].join("\n");
+  latex = latex.replace(/\{\{EXPERIENCE_SECTION\}\}/g, experienceBlocks);
 
-  latex = latex.replace(
-    /\{\{EXPERIENCE_SECTION\}\}/g,
-    experienceBlocks || defaultExperience,
-  );
+  // 6. Education Section (Extracted from Uploaded Master Resume)
+  const educationBlocks = (payload.education || [])
+    .map((edu) => [
+      "    \\resumeSubheading",
+      `      {${escapeLatex(edu.degree || "Education")}}{${escapeLatex(edu.dates || "")}}`,
+      `      {${escapeLatex(edu.institution || "")}}{${escapeLatex(edu.details || "")}}`,
+    ].join("\n"))
+    .join("\n\n");
 
-  // 6. Education & Certifications (Authentic Master Data)
-  const defaultEducation = [
-    "    \\resumeSubheading",
-    "      {Bachelor of Computer Applications (BCA)}{Expected 2026}",
-    "      {Don Bosco College, Panjim, Goa}{Current SGPA: 8.35 (Sem 5)}",
-  ].join("\n");
+  latex = latex.replace(/\{\{EDUCATION_SECTION\}\}/g, educationBlocks);
 
-  latex = latex.replace(/\{\{EDUCATION_SECTION\}\}/g, defaultEducation);
+  // 7. Certifications & Achievements (Extracted from Uploaded Master Resume)
+  const certsBlock = (payload.certificationsAndAchievements || [])
+    .map((c) =>
+      `\\textbf{${escapeLatex(c.title)}}{${c.details ? `: ${escapeLatex(c.details)}` : ""}}`,
+    )
+    .join(" \\\\\n");
 
-  const defaultCertifications = [
-    "\\textbf{Certification}{: The Complete Web Development Bootcamp -- Dr. Angela Yu, Udemy (2024)} \\\\",
-    "\\textbf{Interests}{: Full-Stack Architecture, Scalable Systems Design, Real-Time Applications} \\\\",
-    "\\textbf{Languages}{: English (Intermediate), Hindi (Native)}",
-  ].join("\n");
-
-  latex = latex.replace(/\{\{CERTIFICATIONS_SECTION\}\}/g, defaultCertifications);
+  latex = latex.replace(/\{\{CERTIFICATIONS_SECTION\}\}/g, certsBlock);
 
   return latex;
 }
