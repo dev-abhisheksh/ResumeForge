@@ -28,31 +28,41 @@ export default function ProjectsPage() {
     <div className="w-full space-y-6 bg-white min-h-screen p-2 sm:p-4 font-sans">
       
       {/* 1. TOP HEADER & VAULT QUOTA BANNER */}
-      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 text-[10px] font-black bg-red-600 text-white uppercase tracking-wider whitespace-nowrap">
-              Project Vault
-            </span>
-            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
-              Verified Experience Bank
-            </span>
+      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3">
+        {/* Top Bar: Icon + Titles on Left, Quota Badge on Right */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-red-600/20 pb-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-red-600 border border-red-700 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+              <FolderCode className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 text-[10px] font-black bg-red-600 text-white uppercase tracking-wider whitespace-nowrap">
+                  Project Vault
+                </span>
+                <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                  Verified Experience Bank
+                </span>
+              </div>
+              <h1 className="text-base sm:text-xl font-black text-slate-900 leading-tight mt-0.5 truncate">
+                My Real Projects Library 💻
+              </h1>
+            </div>
           </div>
-          <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">
-            My Real Projects Library 💻
-          </h1>
-          <p className="text-xs font-bold text-slate-600 max-w-xl">
-            Store your authentic projects here. When tailoring resumes for target JDs, AI will swap in relevant projects with zero hallucinations.
-          </p>
+
+          {/* Quota Badge */}
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <div className="px-3 py-1.5 bg-red-600 text-white border-2 border-red-700 shadow-2xs font-black text-xs flex items-center gap-2 whitespace-nowrap">
+              <Layers className="w-4 h-4 shrink-0" />
+              <span>{projectCount} / {maxAllowed} Slots Used</span>
+            </div>
+          </div>
         </div>
 
-        {/* Quota Badge */}
-        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-          <div className="px-3 py-1.5 bg-red-600 text-white border-2 border-red-700 shadow-2xs font-black text-xs flex items-center gap-2 whitespace-nowrap">
-            <FolderCode className="w-4 h-4 shrink-0" />
-            <span>{projectCount} / {maxAllowed} Slots Used</span>
-          </div>
-        </div>
+        {/* Subtitle Description */}
+        <p className="text-xs font-bold text-slate-600">
+          Store your authentic projects here. When tailoring resumes for target JDs, AI will swap in relevant projects with zero hallucinations.
+        </p>
       </div>
 
       {/* 2. LOADING STATE */}
