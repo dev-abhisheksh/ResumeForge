@@ -1,14 +1,20 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, XCircle, Target } from "lucide-react";
+import { CheckCircle2, XCircle, Target, Sparkles, Loader2 } from "lucide-react";
 import { AnalysisResultData } from "@/types/analysis.types";
 
 interface AnalysisReportViewProps {
   analysisResult: AnalysisResultData;
+  onTailorResume?: () => void;
+  isTailoring?: boolean;
 }
 
-export default function AnalysisReportView({ analysisResult }: AnalysisReportViewProps) {
+export default function AnalysisReportView({
+  analysisResult,
+  onTailorResume,
+  isTailoring = false,
+}: AnalysisReportViewProps) {
   // Extract score parameters safely across both live AI scan & stored MongoDB documents
   const atsScore =
     analysisResult?.atsScore ??
@@ -57,7 +63,7 @@ export default function AnalysisReportView({ analysisResult }: AnalysisReportVie
   return (
     <div id="scan-report-results" className="w-full space-y-6 animate-in fade-in duration-300">
       {/* Top Score Gauge Card */}
-      <div className="w-full bg-white border-2 border-red-600 p-5 sm:p-6 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
+      <div className="w-full bg-white border-2 border-red-600 p-5 sm:p-6 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             {/* Score Circular Badge */}
@@ -111,84 +117,106 @@ export default function AnalysisReportView({ analysisResult }: AnalysisReportVie
             </div>
           </div>
         </div>
+
+        {/* PROMINENT TAILOR RESUME ACTION BANNER */}
+        {onTailorResume && (
+          <div className="p-4 bg-red-50/70 border-2 border-red-600/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-black text-slate-900">
+                Want a 92%+ Tailored Resume for this Job Posting? 🎯
+              </h4>
+              <p className="text-xs font-bold text-slate-600 mt-0.5">
+                AI will swap matching projects from your Vault & generate ready-to-compile LaTeX code.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onTailorResume}
+              disabled={isTailoring}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap"
+            >
+              {isTailoring ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Tailoring & Swapping Projects...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>⚡ Tailor Resume & Export LaTeX</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Keyword Matrix Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+      {/* Grid: Matched vs Missing Keywords */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
         {/* Matched Keywords */}
-        <div className="bg-white border-2 border-emerald-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(5,150,105,1)] space-y-3">
-          <div className="flex items-center gap-2 border-b border-emerald-200 pb-2">
+        <div className="bg-white border-2 border-slate-900 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
+          <div className="flex items-center gap-2 border-b-2 border-slate-200 pb-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Matched Keywords ({matchedKeywords.length})
+              Matched Skills & Keywords ({matchedKeywords.length})
             </h4>
           </div>
-          
-          {matchedKeywords.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {matchedKeywords.map((kw: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="px-2.5 py-1 text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-600/40"
-                >
-                  ✓ {kw}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs font-bold text-slate-500">No matched keywords detected.</p>
-          )}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {matchedKeywords.map((kw: string, idx: number) => (
+              <span
+                key={idx}
+                className="px-2.5 py-1 text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-600/30"
+              >
+                ✓ {kw}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Missing Keywords */}
-        <div className="bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3">
-          <div className="flex items-center gap-2 border-b border-red-200 pb-2">
+        <div className="bg-white border-2 border-red-600 p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3">
+          <div className="flex items-center gap-2 border-b-2 border-red-600/20 pb-2">
             <XCircle className="w-5 h-5 text-red-600" />
             <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
               Missing Critical Keywords ({missingKeywords.length})
             </h4>
           </div>
-
-          {missingKeywords.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {missingKeywords.map((kw: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="px-2.5 py-1 text-xs font-black bg-red-50 text-red-800 border border-red-600/40"
-                >
-                  ✗ {kw}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs font-bold text-emerald-700">Awesome! No major missing keywords.</p>
-          )}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {missingKeywords.map((kw: string, idx: number) => (
+              <span
+                key={idx}
+                className="px-2.5 py-1 text-xs font-black bg-red-50 text-red-800 border border-red-600/30"
+              >
+                ✗ {kw}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* AI Recommendations & Improvement Checklist */}
+      {/* AI Recommendations */}
       {suggestions.length > 0 && (
-        <div className="w-full bg-white border-2 border-red-600 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <div className="bg-white border-2 border-slate-900 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
+          <div className="flex items-center gap-2 border-b-2 border-slate-200 pb-2">
             <Target className="w-5 h-5 text-red-600" />
             <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              AI Actionable Improvement Checklist
+              AI Actionable Recommendations
             </h4>
           </div>
-
-          <div className="space-y-2">
-            {suggestions.map((item: string, idx: number) => (
-              <div
+          <ul className="space-y-2 pt-1">
+            {suggestions.map((rec: string, idx: number) => (
+              <li
                 key={idx}
-                className="p-3 bg-slate-50 border-l-4 border-red-600 text-xs font-bold text-slate-800 flex items-start gap-2.5"
+                className="p-3 bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 flex items-start gap-2.5"
               >
-                <span className="w-5 h-5 bg-red-600 text-white font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 bg-red-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">
                   {idx + 1}
                 </span>
-                <p className="leading-relaxed">{item}</p>
-              </div>
+                <span>{rec}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

@@ -59,6 +59,8 @@ export const config = {
     "/settings",
     "/analysis",
     "/analysis/:path*",
+    "/tailor",
+    "/tailor/:path*",
     "/login",
     "/register",
   ],

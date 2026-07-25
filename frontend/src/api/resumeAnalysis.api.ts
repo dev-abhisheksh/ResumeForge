@@ -14,6 +14,14 @@ export const analyzeWithAi = ({
   resumeId: string;
 }) => API.post(`/resume-analysis/analyze/${resumeId}`, data);
 
+export const tailorResumeApi = ({
+  resumeId,
+  jobDescription,
+}: {
+  resumeId: string;
+  jobDescription: string;
+}) => API.post(`/resume-analysis/tailor/${resumeId}`, { jobDescription });
+
 export const getRecentAnalyses = () => API.get("/resume-analysis/recent");
 
 export const getDashboardStats = () => API.get("/resume-analysis/dashboard-stats");

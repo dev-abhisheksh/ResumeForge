@@ -42,6 +42,12 @@ const navItems = [
     badge: "AI",
   },
   {
+    label: "Tailor Resume",
+    href: "/tailor",
+    icon: Sparkles,
+    badge: "PRO",
+  },
+  {
     label: "Projects",
     href: "/projects",
     icon: Projector
