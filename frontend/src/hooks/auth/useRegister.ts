@@ -7,7 +7,10 @@ export const useRegister = () => {
     mutationFn: registerUser,
     onSuccess: () => {
       resetAuthState();
+      if (typeof window !== "undefined") {
+        document.cookie =
+          "isLoggedIn=true; path=/; max-age=604800; SameSite=Lax";
+      }
     },
   });
 };
-

@@ -58,6 +58,8 @@ const registerUser = asyncHandler(
       .json({
         success: true,
         message: "User registered successfully",
+        accessToken,
+        refreshToken,
         data: {
           id: user._id,
           fullName: user.fullName,
