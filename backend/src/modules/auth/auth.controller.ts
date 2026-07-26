@@ -21,7 +21,7 @@ const registerUser = asyncHandler(
     }
 
     const userExists = await User.findOne({ email });
-    if (userExists) throw new ApiError(409, "User already exist. Please login");
+    if (userExists) throw new ApiError(409, "User already exist. Please login ");
 
     const user = await User.create({
       fullName,
