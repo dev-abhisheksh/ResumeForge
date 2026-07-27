@@ -3,7 +3,7 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
 % ATS-Optimized One-Page Version
 %------------------------
 
-\\documentclass[letterpaper,11pt]{article}
+\\documentclass[letterpaper,10.5pt]{article}
 
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -28,12 +28,12 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
 \\renewcommand{\\headrulewidth}{0pt}
 \\renewcommand{\\footrulewidth}{0pt}
 
-% Adjust margins
-\\addtolength{\\oddsidemargin}{-0.6in}
-\\addtolength{\\evensidemargin}{-0.5in}
-\\addtolength{\\textwidth}{1.19in}
-\\addtolength{\\topmargin}{-.7in}
-\\addtolength{\\textheight}{1.4in}
+% Adjust margins for strict single-page layout
+\\addtolength{\\oddsidemargin}{-0.65in}
+\\addtolength{\\evensidemargin}{-0.65in}
+\\addtolength{\\textwidth}{1.3in}
+\\addtolength{\\topmargin}{-.8in}
+\\addtolength{\\textheight}{1.6in}
 
 \\urlstyle{same}
 
@@ -43,7 +43,7 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
 
 % Sections formatting
 \\titleformat{\\section}{
-  \\vspace{-4pt}\\scshape\\raggedright\\large\\bfseries
+  \\vspace{-6pt}\\scshape\\raggedright\\large\\bfseries
 }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
 \\pdfgentounicode=1
@@ -60,22 +60,22 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
     \\begin{tabular*}{1.0\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & \\textbf{\\small #2} \\\\
       \\textit{\\small#3} & \\textit{\\small #4} \\\\
-    \\end{tabular*}\\vspace{-7pt}
+    \\end{tabular*}\\vspace{-6pt}
 }
 
 \\newcommand{\\resumeProjectHeading}[2]{
     \\item
     \\begin{tabular*}{1.001\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\small#1 & \\textbf{\\small #2}\\\\
-    \\end{tabular*}\\vspace{-7pt}
+    \\end{tabular*}\\vspace{-6pt}
 }
 
 \\renewcommand\\labelitemi{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.0in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.15in]}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-4pt}}
 
 %-------------------------------------------
 \\begin{document}
@@ -105,6 +105,7 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
   \\resumeSubHeadingListStart
 {{EDUCATION_SECTION}}
   \\resumeSubHeadingListEnd
+\\vspace{-6pt}
 
 %-----------TECHNICAL SKILLS-----------
 \\section{Technical Skills}
@@ -113,7 +114,7 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
 {{SKILLS_SECTION}}
     }}
  \\end{itemize}
- \\vspace{-16pt}
+ \\vspace{-14pt}
 
 %-----------PROJECTS-----------
 \\section{Projects}
@@ -121,13 +122,14 @@ export const ATS_LATEX_TEMPLATE = `%-------------------------
     \\resumeSubHeadingListStart
 {{PROJECTS_SECTION}}
     \\resumeSubHeadingListEnd
-\\vspace{-2pt}
+\\vspace{-4pt}
 
 %-----------EXPERIENCE-----------
 \\section{Experience}
   \\resumeSubHeadingListStart
 {{EXPERIENCE_SECTION}}
   \\resumeSubHeadingListEnd
+\\vspace{-4pt}
 
 %-----------CERTIFICATIONS & ADDITIONAL-----------
 \\section{Certifications \\& Additional Information}

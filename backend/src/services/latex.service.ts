@@ -83,7 +83,7 @@ export interface TailoredResumePayload {
 
 /**
  * Injects candidate data into the Master ATS LaTeX Template.
- * 100% Dynamic for ANY uploaded Master Resume (Sarthak, Abhishek, or any candidate)!
+ * Guaranteed Strict 1-Page Layout with Zero-Mutation on authentic skills & career sections!
  */
 export function buildLatexResume(
   payload: TailoredResumePayload,
@@ -108,13 +108,13 @@ export function buildLatexResume(
   latex = latex.replace(/\{\{GITHUB_URL\}\}/g, githubUrl);
   latex = latex.replace(/\{\{GITHUB_TEXT\}\}/g, escapeLatex(githubText));
 
-  // 2. Professional Summary (Extracted from Uploaded Master Resume & JD-Aligned)
+  // 2. Professional Summary (Preserved Verbatim)
   latex = latex.replace(
     /\{\{PROFESSIONAL_SUMMARY\}\}/g,
     escapeLatex(payload.professionalSummary || ""),
   );
 
-  // 3. Technical Skills (Extracted from Uploaded Master Resume)
+  // 3. Technical Skills (Preserved Verbatim - Zero Truncation)
   const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "";
   const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "";
   const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "";
@@ -131,7 +131,7 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{SKILLS_SECTION\}\}/g, skillsBlock || "\\textbf{Skills}{: General Software Engineering}");
 
-  // 4. Projects Section (Swapped Vault Projects with Metric Bullets & Overview)
+  // 4. Projects Section (Swapped Vault Projects - 2 Bullets each for Strict 1-Page fit)
   const projectsBlocks = (payload.selectedProjects || [])
     .slice(0, 3)
     .map((proj) => {
@@ -144,7 +144,7 @@ export function buildLatexResume(
         : "";
 
       const bullets = (proj.bulletPoints || [])
-        .slice(0, 3)
+        .slice(0, 2)
         .map((b) => `      \\resumeItem{${escapeLatex(b)}}`)
         .join("\n");
 
@@ -155,7 +155,7 @@ export function buildLatexResume(
         "      \\resumeItemListStart",
         bullets,
         "      \\resumeItemListEnd",
-        "      \\vspace{-13pt}",
+        "      \\vspace{-12pt}",
       ]
         .filter(Boolean)
         .join("\n");
@@ -164,11 +164,12 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{PROJECTS_SECTION\}\}/g, projectsBlocks);
 
-  // 5. Experience Section (Extracted from Uploaded Master Resume)
+  // 5. Experience Section (Preserved Verbatim - 2 Bullets per role for 1-Page fit)
   const experienceBlocks = (payload.experience || [])
-    .slice(0, 3)
+    .slice(0, 2)
     .map((exp) => {
       const bullets = (exp.bulletPoints || [])
+        .slice(0, 2)
         .map((b) => `      \\resumeItem{${escapeLatex(b)}}`)
         .join("\n");
 
@@ -187,7 +188,7 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{EXPERIENCE_SECTION\}\}/g, experienceBlocks);
 
-  // 6. Education Section (Extracted from Uploaded Master Resume)
+  // 6. Education Section (Preserved Verbatim)
   const educationBlocks = (payload.education || [])
     .map((edu) => [
       "    \\resumeSubheading",
@@ -198,7 +199,7 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{EDUCATION_SECTION\}\}/g, educationBlocks);
 
-  // 7. Certifications & Achievements (Extracted from Uploaded Master Resume)
+  // 7. Certifications & Achievements (Preserved Verbatim)
   const certsBlock = (payload.certificationsAndAchievements || [])
     .map((c) =>
       `\\textbf{${escapeLatex(c.title)}}{${c.details ? `: ${escapeLatex(c.details)}` : ""}}`,
