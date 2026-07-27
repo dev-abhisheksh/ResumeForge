@@ -37,17 +37,22 @@ const getResumeRecommendationsAndGuide = asyncHandler(
 
     // 3. Generate AI recommendations & improvement guide (Fast Path: Skip if includeRecommendations === false)
     let suggestionsList: string[] = [];
+    let projectIdeas: any[] = [];
+    let atsScoreRoadmap: any[] = [];
+
     if (includeRecommendations !== false) {
       try {
-        const aiRecommendations = await generateATSRecommendations(
+        const aiRecommendations: any = await generateATSRecommendations(
           structuredResume,
           jobDescription,
           atsResult,
         );
         suggestionsList =
-          (aiRecommendations as any)?.recommendations ||
-          (aiRecommendations as any)?.suggestions ||
+          aiRecommendations?.suggestions ||
+          aiRecommendations?.recommendations ||
           [];
+        projectIdeas = aiRecommendations?.projectIdeas || [];
+        atsScoreRoadmap = aiRecommendations?.atsScoreRoadmap || [];
       } catch (recErr) {
         console.warn("Recommendations generation skipped/failed:", recErr);
       }
@@ -69,6 +74,8 @@ const getResumeRecommendationsAndGuide = asyncHandler(
       matchedKeywords: atsResult.matchedKeywords,
       missingKeywords: atsResult.missingKeywords,
       suggestions: suggestionsList,
+      projectIdeas,
+      atsScoreRoadmap,
       experienceReasoning: atsResult.experienceReasoning,
       projectReasoning: atsResult.projectReasoning,
       structuredResume,
@@ -91,6 +98,8 @@ const getResumeRecommendationsAndGuide = asyncHandler(
         missingKeywords: newAnalysis.missingKeywords,
         suggestions: newAnalysis.suggestions,
         recommendations: newAnalysis.suggestions,
+        projectIdeas: newAnalysis.projectIdeas,
+        atsScoreRoadmap: newAnalysis.atsScoreRoadmap,
         experienceReasoning: newAnalysis.experienceReasoning,
         projectReasoning: newAnalysis.projectReasoning,
         jobDescription: newAnalysis.jobDescription,

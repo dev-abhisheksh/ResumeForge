@@ -16,6 +16,8 @@ export interface IResumeAnalysis extends Document {
   matchedKeywords?: string[];
   missingKeywords?: string[];
   suggestions?: string[];
+  projectIdeas?: any[];
+  atsScoreRoadmap?: any[];
   optimizedResume?: string;
   status: "processing" | "completed" | "failed";
   createdAt: Date;
@@ -41,6 +43,8 @@ const resumeAnalysisSchema = new Schema<IResumeAnalysis>(
     matchedKeywords: [{ type: String }],
     missingKeywords: [{ type: String }],
     suggestions: [{ type: String }],
+    projectIdeas: [{ type: Schema.Types.Mixed }],
+    atsScoreRoadmap: [{ type: Schema.Types.Mixed }],
     optimizedResume: { type: String },
     structuredResume: { type: Schema.Types.Mixed, required: true },
     status: {

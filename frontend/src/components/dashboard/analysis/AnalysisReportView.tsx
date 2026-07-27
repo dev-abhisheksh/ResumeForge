@@ -219,6 +219,102 @@ export default function AnalysisReportView({
           </ul>
         </div>
       )}
+
+      {/* Tailored Project Ideas for Target Company/JD */}
+      {analysisResult?.projectIdeas && analysisResult.projectIdeas.length > 0 && (
+        <div className="bg-white border-2 border-red-600 p-5 shadow-[5px_5px_0px_0px_rgba(220,38,38,1)] space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-red-600/20 pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-red-600" />
+              <h4 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wider">
+                Tailored Project Ideas for This Role & Company 🚀
+              </h4>
+            </div>
+            <span className="text-[10px] font-black bg-red-600 text-white px-2 py-0.5 uppercase">
+              AI Recommended
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            {analysisResult.projectIdeas.map((idea: any, idx: number) => (
+              <div
+                key={idx}
+                className="p-4 bg-slate-50 border-2 border-slate-900 space-y-3 shadow-2xs hover:border-red-600 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h5 className="text-xs sm:text-sm font-black text-slate-900">
+                    💡 {idea.title}
+                  </h5>
+                </div>
+
+                {idea.whyItImpresses && (
+                  <p className="text-xs font-bold text-slate-700 leading-relaxed bg-amber-50/80 p-2 border border-amber-200">
+                    <span className="font-black text-amber-900">Why hiring managers love it:</span>{" "}
+                    {idea.whyItImpresses}
+                  </p>
+                )}
+
+                {idea.techStack && idea.techStack.length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-black text-slate-500 uppercase">Tech:</span>
+                    {idea.techStack.map((tech: string, tIdx: number) => (
+                      <span
+                        key={tIdx}
+                        className="px-2 py-0.5 text-[10px] font-extrabold bg-white text-slate-900 border border-slate-300"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {idea.keyFeatures && idea.keyFeatures.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black text-slate-600 uppercase block">Key Features to Build:</span>
+                    <ul className="space-y-1">
+                      {idea.keyFeatures.map((feat: string, fIdx: number) => (
+                        <li key={fIdx} className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                          <span className="text-emerald-600 font-bold">✓</span>
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ATS Score Improvement Roadmap */}
+      {analysisResult?.atsScoreRoadmap && analysisResult.atsScoreRoadmap.length > 0 && (
+        <div className="bg-white border-2 border-emerald-600 p-5 shadow-[4px_4px_0px_0px_rgba(5,150,105,1)] space-y-3">
+          <div className="flex items-center gap-2 border-b-2 border-emerald-600/20 pb-2">
+            <Target className="w-5 h-5 text-emerald-600" />
+            <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              ATS Score 90%+ Improvement Roadmap
+            </h4>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {analysisResult.atsScoreRoadmap.map((item: any, idx: number) => (
+              <div key={idx} className="p-3 bg-emerald-50/60 border border-emerald-300 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-emerald-900 uppercase">
+                    Step {idx + 1}: {item.step}
+                  </span>
+                  {item.expectedScoreBoost && (
+                    <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5">
+                      {item.expectedScoreBoost}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-bold text-slate-700">{item.action}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
