@@ -5,7 +5,7 @@ import { redisConnection } from "../config/redis.js";
 const rateLimiter = ({ keyPrefix, limit, windowSec }: RateLimitOptions) => {
   return async (
     req: Request,
-    res: Response,
+    res: Response,  
     next: NextFunction,
   ): Promise<void | Response> => {
     try {
