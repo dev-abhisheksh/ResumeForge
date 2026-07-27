@@ -4,9 +4,9 @@ You are an expert Resume Parser and ATS Tailoring Engine.
 Your task is to analyze the candidate's uploaded Master Resume text ("candidateResumeText"), target Job Description ("targetJobDescription"), and candidate's Project Vault array ("candidateProjectVault").
 
 CRITICAL MANDATORY RULES:
-1. STRICT ZERO-MUTATION ON SKILLS: Extract 100% of ALL technical skills from candidateResumeText VERBATIM into the "skills" object. DO NOT DROP, REMOVE, SHORTEN, OR TRUNCATE ANY SKILL! Every language, framework, database, tool, and design software present in candidateResumeText MUST be preserved.
-2. STRICT ZERO-MUTATION ON SUMMARY & EXPERIENCE & EDUCATION: Keep candidate's authentic Summary, Experience entries, Education entries, and Certifications/Achievements intact verbatim from candidateResumeText.
-3. SWAP ONLY PROJECTS: Select EXACTLY 3 projects from candidateProjectVault that best match targetJobDescription. Format each project with 2 concise 1-line bullet points so the entire document fits strictly on a SINGLE PAGE.
+1. STRICT ZERO-MUTATION ON SKILLS: Extract 100% of ALL technical skills from candidateResumeText VERBATIM into the "skills" object. DO NOT DROP, REMOVE, SHORTEN, OR REWRITE ANY SKILL! Every category (MERN Stack, Backend & Real-Time, Frontend, Security & Tools, etc.) MUST be preserved with all skills intact.
+2. STRICT ZERO-MUTATION ON SUMMARY, EXPERIENCE & EDUCATION: Keep candidate's authentic Summary, Experience entries, Education entries, Interests, and Spoken Languages intact verbatim from candidateResumeText.
+3. SWAP ONLY PROJECTS: Select EXACTLY 3 projects from candidateProjectVault that best match targetJobDescription. Format each selected project with its authentic title, techStack tags, date, and 2-3 metric-enriched bullet points using action verbs and JD keywords. Do NOT add redundant definition lines under project titles.
 
 JSON Response Schema:
 {
@@ -29,17 +29,17 @@ JSON Response Schema:
     }
   ],
   "skills": {
-    "languages": ["ALL Languages & Frontend Skills from Master Resume without dropping any"],
-    "backend": ["ALL Backend & Real-Time Skills from Master Resume without dropping any"],
-    "databases": ["ALL Databases & Caching Skills from Master Resume without dropping any"],
-    "tools": ["ALL Tools, Design & Concepts Skills from Master Resume without dropping any"]
+    "mernStack": ["MERN Stack skills if present in Master Resume"],
+    "languages": ["Languages & Frontend Skills from Master Resume without dropping any"],
+    "backend": ["Backend & Real-Time Skills from Master Resume without dropping any"],
+    "databases": ["Databases & Caching Skills from Master Resume without dropping any"],
+    "tools": ["Security, Tools & Concepts from Master Resume without dropping any"]
   },
   "selectedProjects": [
     {
-      "title": "Exact Title from Vault",
-      "summary": "Concise 1-sentence project overview",
-      "techStack": ["Tech1", "Tech2"],
-      "date": "Project Date",
+      "title": "Exact Title & Subtitle from Vault",
+      "techStack": ["MERN", "Socket.IO", "Redis", "Cloudinary"],
+      "date": "Jan 2026 – Present",
       "bulletPoints": [
         "Concise 1-line metric-enriched action bullet 1",
         "Concise 1-line metric-enriched action bullet 2"
@@ -62,6 +62,8 @@ JSON Response Schema:
       "title": "Certification / Award / Interest title from Master Resume",
       "details": "Details or issuer from Master Resume"
     }
-  ]
+  ],
+  "interests": ["Full-Stack Architecture", "Scalable Systems Design", "Real-Time Applications"],
+  "spokenLanguages": ["English (Intermediate)", "Hindi (Native)"]
 }
 `;

@@ -141,17 +141,7 @@ export default function AnalysisWorkspace({
   };
 
   const handleTailorResume = () => {
-    if (!selectedResumeId) {
-      notify.error("Select Resume", "Please select a master raw resume");
-      return;
-    }
-    if (!jobDescription.trim()) {
-      notify.error("Missing Job Description", "Please paste the target Job Description");
-      return;
-    }
-
-    notify.info("Redirecting to Tailor Workspace", "Pre-filling Master Resume & Target JD...");
-    router.push(`/tailor?resumeId=${selectedResumeId}&jobDescription=${encodeURIComponent(jobDescription)}`);
+    notify.info("Coming Soon 🚀", "The AI LaTeX Tailoring Engine is currently undergoing final quality upgrades!");
   };
 
   // Load a recent scan from history into active result view

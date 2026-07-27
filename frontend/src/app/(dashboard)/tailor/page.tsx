@@ -102,8 +102,33 @@ export default function TailorResumePage() {
   return (
     <div className="w-full space-y-6 bg-white min-h-screen p-2 sm:p-4 font-sans">
       
+      {/* COMING SOON BANNER */}
+      <div className="w-full bg-amber-50 border-2 border-amber-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(217,119,6,1)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-500 text-white font-black text-lg flex items-center justify-center border-2 border-amber-600 shrink-0">
+            🚧
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 text-[10px] font-black bg-amber-600 text-white uppercase tracking-wider">
+                Coming Soon
+              </span>
+              <span className="text-xs font-extrabold text-amber-900">
+                Under Active Enhancement
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
+              AI LaTeX Tailoring Engine Upgrades in Progress
+            </h3>
+            <p className="text-xs font-bold text-slate-600 mt-0.5">
+              We are enhancing project swapping accuracy & zero-mutation ATS formatting. Stay tuned!
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* 1. HEADER BANNER */}
-      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3">
+      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-3 opacity-60 pointer-events-none">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-red-600 border border-red-700 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
             <Sparkles className="w-4 h-4 stroke-[2.5]" />

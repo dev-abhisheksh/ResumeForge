@@ -71,6 +71,7 @@ export interface TailoredResumePayload {
   professionalSummary: string;
   education?: EducationItemPayload[];
   skills: {
+    mernStack?: string[];
     languages?: string[];
     backend?: string[];
     databases?: string[];
@@ -79,11 +80,13 @@ export interface TailoredResumePayload {
   selectedProjects: TailoredProjectItem[];
   experience?: TailoredExperienceItem[];
   certificationsAndAchievements?: CertificationAchievementPayload[];
+  interests?: string[];
+  spokenLanguages?: string[];
 }
 
 /**
  * Injects candidate data into the Master ATS LaTeX Template.
- * Guaranteed Strict 1-Page Layout with Zero-Mutation on authentic skills & career sections!
+ * Guaranteed Strict 1-Page Layout with Clean Headings & Zero Skills/Interests Mutation!
  */
 export function buildLatexResume(
   payload: TailoredResumePayload,
@@ -114,13 +117,15 @@ export function buildLatexResume(
     escapeLatex(payload.professionalSummary || ""),
   );
 
-  // 3. Technical Skills (Preserved Verbatim - Zero Truncation)
+  // 3. Technical Skills (Preserved Verbatim - Supports exact candidate categories)
+  const mernStr = payload.skills?.mernStack?.map(escapeLatex).join(", ") || "";
   const languagesStr = payload.skills?.languages?.map(escapeLatex).join(", ") || "";
   const backendStr = payload.skills?.backend?.map(escapeLatex).join(", ") || "";
   const dbStr = payload.skills?.databases?.map(escapeLatex).join(", ") || "";
   const toolsStr = payload.skills?.tools?.map(escapeLatex).join(", ") || "";
 
   const skillsBlock = [
+    mernStr ? `\\textbf{MERN Stack}{: ${mernStr}}` : "",
     languagesStr ? `\\textbf{Languages \\& Frontend}{: ${languagesStr}}` : "",
     backendStr ? `\\textbf{Backend \\& Real-Time}{: ${backendStr}}` : "",
     dbStr ? `\\textbf{Databases \\& Caching}{: ${dbStr}}` : "",
@@ -131,17 +136,13 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{SKILLS_SECTION\}\}/g, skillsBlock || "\\textbf{Skills}{: General Software Engineering}");
 
-  // 4. Projects Section (Swapped Vault Projects - 2 Bullets each for Strict 1-Page fit)
+  // 4. Projects Section (Clean Headings + Direct Bullet Points, No redundant italic summary lines)
   const projectsBlocks = (payload.selectedProjects || [])
     .slice(0, 3)
     .map((proj) => {
       const techStr = Array.isArray(proj.techStack)
         ? proj.techStack.map(escapeLatex).join(", ")
         : escapeLatex(proj.techStack || "");
-
-      const summaryLine = proj.summary
-        ? `      \\item\\small{\\textit{${escapeLatex(proj.summary)}}}`
-        : "";
 
       const bullets = (proj.bulletPoints || [])
         .slice(0, 2)
@@ -151,11 +152,10 @@ export function buildLatexResume(
       return [
         "    \\resumeProjectHeading",
         `      {\\textbf{${escapeLatex(proj.title)}}${techStr ? ` $|$ \\emph{${techStr}}` : ""}}{${escapeLatex(proj.date || "2026")}}`,
-        summaryLine,
         "      \\resumeItemListStart",
         bullets,
         "      \\resumeItemListEnd",
-        "      \\vspace{-12pt}",
+        "      \\vspace{-10pt}",
       ]
         .filter(Boolean)
         .join("\n");
@@ -164,7 +164,7 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{PROJECTS_SECTION\}\}/g, projectsBlocks);
 
-  // 5. Experience Section (Preserved Verbatim - 2 Bullets per role for 1-Page fit)
+  // 5. Experience Section (Preserved Verbatim)
   const experienceBlocks = (payload.experience || [])
     .slice(0, 2)
     .map((exp) => {
@@ -199,12 +199,20 @@ export function buildLatexResume(
 
   latex = latex.replace(/\{\{EDUCATION_SECTION\}\}/g, educationBlocks);
 
-  // 7. Certifications & Achievements (Preserved Verbatim)
-  const certsBlock = (payload.certificationsAndAchievements || [])
-    .map((c) =>
-      `\\textbf{${escapeLatex(c.title)}}{${c.details ? `: ${escapeLatex(c.details)}` : ""}}`,
-    )
-    .join(" \\\\\n");
+  // 7. Certifications, Interests & Spoken Languages
+  const certsList = (payload.certificationsAndAchievements || []).map((c) =>
+    `\\textbf{${escapeLatex(c.title)}}{${c.details ? `: ${escapeLatex(c.details)}` : ""}}`,
+  );
+
+  if (payload.interests && payload.interests.length > 0) {
+    certsList.push(`\\textbf{Interests}{: ${payload.interests.map(escapeLatex).join(", ")}}`);
+  }
+
+  if (payload.spokenLanguages && payload.spokenLanguages.length > 0) {
+    certsList.push(`\\textbf{Languages}{: ${payload.spokenLanguages.map(escapeLatex).join(", ")}}`);
+  }
+
+  const certsBlock = certsList.join(" \\\\\n");
 
   latex = latex.replace(/\{\{CERTIFICATIONS_SECTION\}\}/g, certsBlock);
 
