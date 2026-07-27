@@ -4,6 +4,7 @@ export interface AnalyzePayload {
   jobDescription: string;
   company?: string;
   role?: string;
+  includeRecommendations?: boolean;
 }
 
 export const analyzeWithAi = ({

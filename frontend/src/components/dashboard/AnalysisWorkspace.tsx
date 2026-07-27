@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useResume } from "@/hooks/resume/useResumes";
 import { notify } from "@/lib/toast";
 import { AnalysisResultData, AnalysisWorkspaceProps } from "@/types/analysis.types";
@@ -18,6 +19,7 @@ import { useTailorResume } from "@/hooks/resumeAnalysis/useTailorResume";
 export default function AnalysisWorkspace({
   preselectedResumeId,
 }: AnalysisWorkspaceProps) {
+  const router = useRouter();
 
   const { data: rawResumesData, isLoading: isLoadingResumes } = useResume();
   const { data: recentAnalyses = [], isLoading: isLoadingRecentAnalysis } = useRecentAnalysis();
@@ -98,6 +100,46 @@ export default function AnalysisWorkspace({
     );
   };
 
+  const handleRunFastAnalysis = () => {
+    if (!selectedResumeId) {
+      notify.error("Select Resume", "Please select a master raw resume");
+      return;
+    }
+
+    if (!jobDescription.trim()) {
+      notify.error("Missing Job Description", "Please paste the target Job Description");
+      return;
+    }
+
+    mutateAnalyzeWithAi(
+      {
+        resumeId: selectedResumeId,
+        data: { jobDescription, company, role, includeRecommendations: false },
+      },
+      {
+        onSuccess: (res) => {
+          const resData =
+            res.data?.result ??
+            res.data?.analysis ??
+            res.data?.data ??
+            res.data;
+
+          setAnalysisResult(resData);
+          notify.success("Instant Score Ready!", "ATS score & keyword match calculated in ~1.5s.");
+          setIsFormExpanded(false);
+
+          setTimeout(() => {
+            document.getElementById("scan-report-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 100);
+        },
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : "Failed to run Instant ATS Score";
+          notify.error("Analysis Failed", msg);
+        },
+      }
+    );
+  };
+
   const handleTailorResume = () => {
     if (!selectedResumeId) {
       notify.error("Select Resume", "Please select a master raw resume");
@@ -108,25 +150,8 @@ export default function AnalysisWorkspace({
       return;
     }
 
-    mutateTailor(
-      { resumeId: selectedResumeId, jobDescription },
-      {
-        onSuccess: (res) => {
-          const resData = res.data;
-          setTailorResult({
-            latexCode: resData.latexCode,
-            atsScore: resData.atsScore || 92,
-            tailoredData: resData.tailoredData,
-          });
-          setIsModalOpen(true);
-          notify.success("Resume Tailored!", "Swapped vault projects & generated LaTeX code.");
-        },
-        onError: (err) => {
-          const msg = err instanceof Error ? err.message : "Failed to tailor resume";
-          notify.error("Tailoring Failed", msg);
-        },
-      }
-    );
+    notify.info("Redirecting to Tailor Workspace", "Pre-filling Master Resume & Target JD...");
+    router.push(`/tailor?resumeId=${selectedResumeId}&jobDescription=${encodeURIComponent(jobDescription)}`);
   };
 
   // Load a recent scan from history into active result view
@@ -177,6 +202,7 @@ export default function AnalysisWorkspace({
         isFormExpanded={isFormExpanded}
         setIsFormExpanded={setIsFormExpanded}
         onSubmit={handleRunAnalysis}
+        onSubmitFast={handleRunFastAnalysis}
       />
 
       {/* 3. Recent AI Scans List */}

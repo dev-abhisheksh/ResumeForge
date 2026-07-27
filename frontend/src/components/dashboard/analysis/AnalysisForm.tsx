@@ -27,6 +27,7 @@ interface AnalysisFormProps {
   isFormExpanded: boolean;
   setIsFormExpanded: (val: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onSubmitFast?: () => void;
 }
 
 export default function AnalysisForm({
@@ -44,6 +45,7 @@ export default function AnalysisForm({
   isFormExpanded,
   setIsFormExpanded,
   onSubmit,
+  onSubmitFast,
 }: AnalysisFormProps) {
   const selectedResumeObj = resumeList.find((r: any) => r._id === selectedResumeId);
   const isValid = selectedResumeId && jobDescription.trim().length >= 10;
@@ -172,8 +174,8 @@ export default function AnalysisForm({
                 />
               </div>
 
-              {/* Run Scan Button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
+              {/* Run Scan Action Buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
                 {!isValid ? (
                   <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 px-3 py-1.5 border border-amber-300 text-xs font-bold">
                     <span>⚠️ Select a master resume and paste a job description to enable AI scan.</span>
@@ -182,27 +184,44 @@ export default function AnalysisForm({
                   <span className="text-xs font-extrabold text-emerald-700">✓ All required fields completed</span>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={isAnalyzing || !isValid}
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 text-xs sm:text-sm font-black border-2 transition-all ${
-                    isAnalyzing || !isValid
-                      ? "bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed shadow-none opacity-80"
-                      : "bg-red-600 hover:bg-red-700 text-white border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
-                  }`}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                      <span>Analyzing Resume with AI...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Run AI ATS Analysis</span>
-                    </>
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+                  {onSubmitFast && (
+                    <button
+                      type="button"
+                      disabled={isAnalyzing || !isValid}
+                      onClick={onSubmitFast}
+                      className={`inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-black border-2 transition-all ${
+                        isAnalyzing || !isValid
+                          ? "bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed shadow-none"
+                          : "bg-white hover:bg-slate-50 text-slate-900 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                      }`}
+                    >
+                      <span>⚡ Instant ATS Score (~1.5s)</span>
+                    </button>
                   )}
-                </button>
+
+                  <button
+                    type="submit"
+                    disabled={isAnalyzing || !isValid}
+                    className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-black border-2 transition-all ${
+                      isAnalyzing || !isValid
+                        ? "bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed shadow-none opacity-80"
+                        : "bg-red-600 hover:bg-red-700 text-white border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer"
+                    }`}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                        <span>Analyzing Resume with AI...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>Full Deep AI Analysis</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           )}

@@ -12,11 +12,16 @@ import {
   Layers,
   FileText,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useResume } from "@/hooks/resume/useResumes";
 import { useTailorResume } from "@/hooks/resumeAnalysis/useTailorResume";
 import { notify } from "@/lib/toast";
 
 export default function TailorResumePage() {
+  const searchParams = useSearchParams();
+  const paramResumeId = searchParams.get("resumeId") || "";
+  const paramJd = searchParams.get("jobDescription") || searchParams.get("jd") || "";
+
   const { data: rawResumesData, isLoading: isLoadingResumes } = useResume();
   const { isPending: isTailoring, mutate: mutateTailor } = useTailorResume();
 
@@ -36,10 +41,16 @@ export default function TailorResumePage() {
   } | null>(null);
 
   useEffect(() => {
-    if (resumeList.length > 0 && !selectedResumeId) {
+    if (paramResumeId) {
+      setSelectedResumeId(paramResumeId);
+    } else if (resumeList.length > 0 && !selectedResumeId) {
       setSelectedResumeId(resumeList[0]._id);
     }
-  }, [resumeList, selectedResumeId]);
+
+    if (paramJd && !jobDescription) {
+      setJobDescription(paramJd);
+    }
+  }, [paramResumeId, paramJd, resumeList, selectedResumeId]);
 
   const handleTailorSubmit = (e: React.FormEvent) => {
     e.preventDefault();
