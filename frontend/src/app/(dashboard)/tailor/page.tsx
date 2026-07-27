@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import {
   Sparkles,
   FileCode2,
@@ -17,7 +17,7 @@ import { useResume } from "@/hooks/resume/useResumes";
 import { useTailorResume } from "@/hooks/resumeAnalysis/useTailorResume";
 import { notify } from "@/lib/toast";
 
-export default function TailorResumePage() {
+function TailorResumeContent() {
   const searchParams = useSearchParams();
   const paramResumeId = searchParams.get("resumeId") || "";
   const paramJd = searchParams.get("jobDescription") || searchParams.get("jd") || "";
@@ -153,7 +153,7 @@ export default function TailorResumePage() {
       </div>
 
       {/* 2. TAILOR SETUP FORM */}
-      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-4">
+      <div className="w-full bg-white border-2 border-red-600 p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] space-y-4 opacity-60 pointer-events-none">
         <form onSubmit={handleTailorSubmit} className="space-y-4 w-full">
           
           {/* Select Master Resume Dropdown */}
@@ -190,7 +190,7 @@ export default function TailorResumePage() {
               required
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste target Job Description text here (e.g. Required skills: Node.js, Express, Redis, Microservices, BullMQ...)"
+              placeholder="Paste target Job Description text here..."
               className="w-full p-3.5 bg-slate-900 text-slate-100 font-mono text-xs border-2 border-slate-900 focus:border-red-600 outline-none leading-relaxed"
             />
           </div>
@@ -199,20 +199,11 @@ export default function TailorResumePage() {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isTailoring || !selectedResumeId || !jobDescription.trim()}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
+              disabled
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-300 text-slate-600 text-xs sm:text-sm font-black border-2 border-slate-400 cursor-not-allowed"
             >
-              {isTailoring ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Swapping Projects & Tailoring...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate Tailored ATS Resume (LaTeX)</span>
-                </>
-              )}
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Tailored ATS Resume (LaTeX)</span>
             </button>
           </div>
         </form>
@@ -313,5 +304,19 @@ export default function TailorResumePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function TailorResumePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs font-black text-slate-500 uppercase tracking-wider">
+          Loading Tailor Workspace...
+        </div>
+      }
+    >
+      <TailorResumeContent />
+    </Suspense>
   );
 }

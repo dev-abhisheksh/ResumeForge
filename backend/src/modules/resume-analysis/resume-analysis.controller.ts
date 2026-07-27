@@ -52,7 +52,7 @@ const getResumeRecommendationsAndGuide = asyncHandler(
           aiRecommendations?.recommendations ||
           [];
         projectIdeas = aiRecommendations?.projectIdeas || [];
-        atsScoreRoadmap = aiRecommendations?.atsScoreRoadmap || [];
+            atsScoreRoadmap = aiRecommendations?.atsScoreRoadmap || [];
       } catch (recErr) {
         console.warn("Recommendations generation skipped/failed:", recErr);
       }
