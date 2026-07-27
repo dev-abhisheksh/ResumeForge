@@ -16,7 +16,9 @@ import { buildLatexResume } from "../../services/latex.service.js";
 const getResumeRecommendationsAndGuide = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { resumeId } = req.params;
-    const { jobDescription, company, role } = req.body as GetAiRecommendationsBody;
+    const { jobDescription, company, role, includeRecommendations = true } = req.body as GetAiRecommendationsBody & {
+      includeRecommendations?: boolean;
+    };
 
     if (!resumeId) throw new ApiError(400, "Resume ID is required");
     if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {
@@ -33,18 +35,23 @@ const getResumeRecommendationsAndGuide = asyncHandler(
     // 2. Dynamically calculate ATS scores against the specific target Job Description
     const atsResult: ATSResult = await calculateATS(structuredResume, jobDescription);
 
-    // 3. Generate AI recommendations & improvement guide
-    const aiRecommendations = await generateATSRecommendations(
-      structuredResume,
-      jobDescription,
-      atsResult,
-    );
-
-    // Extract suggestions array safely
-    const suggestionsList =
-      (aiRecommendations as any)?.recommendations ||
-      (aiRecommendations as any)?.suggestions ||
-      [];
+    // 3. Generate AI recommendations & improvement guide (Fast Path: Skip if includeRecommendations === false)
+    let suggestionsList: string[] = [];
+    if (includeRecommendations !== false) {
+      try {
+        const aiRecommendations = await generateATSRecommendations(
+          structuredResume,
+          jobDescription,
+          atsResult,
+        );
+        suggestionsList =
+          (aiRecommendations as any)?.recommendations ||
+          (aiRecommendations as any)?.suggestions ||
+          [];
+      } catch (recErr) {
+        console.warn("Recommendations generation skipped/failed:", recErr);
+      }
+    }
 
     // 4. Save a new ResumeAnalysis document in MongoDB for this scan
     const newAnalysis = await ResumeAnalysis.create({
