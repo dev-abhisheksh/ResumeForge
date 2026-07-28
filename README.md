@@ -1,4 +1,4 @@
-# 🚀 ResumeForge — Enterprise AI ATS Resume Optimization & Tailoring Platform
+# 🚀 ResumeForge — AI ATS Resume Optimization & Tailoring Platform
 
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white)
@@ -12,7 +12,7 @@
 ![LaTeX](https://img.shields.io/badge/LaTeX-008080?logo=latex&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?logo=tailwindcss&logoColor=white)
 
-ResumeForge is an enterprise-grade AI ATS Optimization & Resume Tailoring Platform built to give job seekers a competitive edge. Powered by Node.js, Express, TypeScript, Next.js 15, and Groq AI (Llama 3.3-70B), ResumeForge parses raw master resumes, calculates instant ATS match scores in ~1.5s against target Job Descriptions, diagnoses critical keyword gaps, suggests company-tailored project ideas, and exports clean, single-page ATS-optimized LaTeX source code.
+ResumeForge is an AI ATS Optimization & Resume Tailoring Platform built to give job seekers a competitive edge. Powered by Node.js, Express, TypeScript, Next.js 15, and Groq AI (Llama 3.3-70B), ResumeForge parses raw master resumes, calculates instant ATS match scores in ~1.5s against target Job Descriptions, diagnoses critical keyword gaps, suggests company-tailored project ideas, and exports clean, single-page ATS-optimized LaTeX source code.
 
 ---
 
@@ -216,12 +216,6 @@ Route-level rate limits (e.g. 10 req / hr for AI analysis, 5 req / 15 min for re
 3. Commit changes (`git commit -m "Add new feature"`)
 4. Push to branch (`git push origin feat/new-feature`)
 5. Open a Pull Request
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
