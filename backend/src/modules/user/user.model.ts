@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 export interface IUser extends Document {
   fullName: string;
   email: string;
-  password: string;
+  password?: string;
   provider: "local" | "google";
   avatar?: string;
   isVerified: boolean;
