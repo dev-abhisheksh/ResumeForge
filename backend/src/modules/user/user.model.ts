@@ -8,6 +8,7 @@ export interface IUser extends Document {
   provider: "local" | "google";
   avatar?: string;
   isVerified: boolean;
+  providerId?: string
 
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -32,10 +33,15 @@ const userSchema = new Schema<IUser>(
       default: "local",
     },
 
+    providerId: {
+      type: String,
+      default: null,
+    },
+
     password: {
       type: String,
       select: false,
-      required: function (): boolean {
+      required: function (this: IUser) {
         return this.provider === "local";
       },
     },
@@ -55,7 +61,7 @@ const userSchema = new Schema<IUser>(
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
 
   this.password = await bcrypt.hash(this.password, 10);
 });
