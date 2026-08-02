@@ -8,6 +8,12 @@ import { useRegister } from "@/hooks/auth/useRegister";
 import { notify } from "@/lib/toast";
 import { Spinner } from "@/components/ui/Spinner";
 
+const getGoogleAuthURL = () => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  return `${cleanBase}/auth/google`;
+};
+
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -67,12 +73,10 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Google Social Register Button */}
+        {/* Google Social Register Link Button */}
         <a
-          href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`}
-          className="w-full flex items-center justify-center gap-2.5 bg-white border-2 border-slate-300 hover:border-red-600 text-slate-
-  900 font-extrabold text-xs sm:text-sm h-10 sm:h-11 px-4 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer
-  active:translate-x-0.5 active:translate-y-0.5"
+          href={getGoogleAuthURL()}
+          className="w-full flex items-center justify-center gap-2.5 bg-white border-2 border-slate-300 hover:border-red-600 text-slate-900 font-extrabold text-xs sm:text-sm h-10 sm:h-11 px-4 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.
