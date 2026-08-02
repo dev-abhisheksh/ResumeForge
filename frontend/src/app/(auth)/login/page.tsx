@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileCheck, ArrowRight, Lock, Mail } from "lucide-react";
@@ -21,6 +21,16 @@ export default function LoginPage() {
 
   const router = useRouter();
   const { mutate, isPending, isError, error } = useLogin();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const authError = params.get("error");
+      if (authError) {
+        notify.error("Google Login Failed", decodeURIComponent(authError));
+      }
+    }
+  }, []);
 
   const handleSubmitForm = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -6,4 +6,5 @@ export const cookieOptions: CookieOptions = {
   httpOnly: true,
   secure: isProduction,
   sameSite: isProduction ? "none" : "lax",
+  path: "/",
 };

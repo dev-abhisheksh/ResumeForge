@@ -237,9 +237,17 @@ const googleCallback = [
       }
     }
 
-    passport.authenticate("google", {
-      session: false,
-      failureRedirect: `${clientUrl}/login?error=google_auth_failed`,
+    passport.authenticate("google", { session: false }, (err: any, user: IUser | false, info: any) => {
+      if (err || !user) {
+        console.error("Google Auth Callback Error:", err || info);
+        return res.redirect(
+          `${clientUrl}/login?error=${encodeURIComponent(
+            err?.message || (info && typeof info === "object" && "message" in info ? (info as { message: string }).message : "google_auth_failed")
+          )}`
+        );
+      }
+      req.user = user;
+      next();
     })(req, res, next);
   },
   asyncHandler(async (req: Request, res: Response) => {
