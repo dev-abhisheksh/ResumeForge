@@ -218,7 +218,7 @@ const googleAuth = passport.authenticate("google", {
 const googleCallback = [
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: `${process.env.CLIENT_URL || "http://localhost:3000"}/login?error=google_auth_failed`,
   }),
   asyncHandler(async (req: Request, res: Response) => {
     const user = req.user as IUser;
@@ -237,6 +237,7 @@ const googleCallback = [
     if (!session) throw new ApiError(500, "Failed to establish session");
 
     const accessToken = generateAccessToken(user, session._id.toString());
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
 
     res
       .cookie("accessToken", accessToken, {
@@ -250,10 +251,11 @@ const googleCallback = [
       .cookie("isLoggedIn", "true", {
         httpOnly: false,
         sameSite: "lax",
+        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .redirect(`${process.env.CLIENT_URL}/dashboard`);
-  })
-]
+      .redirect(`${clientUrl}/dashboard`);
+  }),
+];
 
 export { registerUser, loginUser, logoutUser, refreshTokenRotation, getMe, googleAuth, googleCallback };

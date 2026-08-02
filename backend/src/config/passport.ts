@@ -22,9 +22,16 @@ passport.use(
         });
 
         if (existingUser) {
+          let updated = false;
           if (!existingUser.providerId) {
-            existingUser.provider = "google";
             existingUser.providerId = profile.id;
+            updated = true;
+          }
+          if (profile.photos?.[0]?.value && !existingUser.avatar) {
+            existingUser.avatar = profile.photos[0].value;
+            updated = true;
+          }
+          if (updated) {
             await existingUser.save();
           }
 
