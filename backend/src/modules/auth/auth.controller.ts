@@ -211,15 +211,37 @@ const getMe = asyncHandler(
   },
 );
 
-const googleAuth = passport.authenticate("google", {
-  scope: ["profile", "email"]
-})
+const googleAuth = (req: Request, res: Response, next: any) => {
+  const referer = req.headers.referer || req.headers.origin || process.env.CLIENT_URL || "http://localhost:3000";
+  let clientOrigin = process.env.CLIENT_URL || "http://localhost:3000";
+  try {
+    clientOrigin = new URL(referer).origin;
+  } catch (e) {
+    // fallback
+  }
+
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: encodeURIComponent(clientOrigin),
+  })(req, res, next);
+};
 
 const googleCallback = [
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: `${process.env.CLIENT_URL || "http://localhost:3000"}/login?error=google_auth_failed`,
-  }),
+  (req: Request, res: Response, next: any) => {
+    let clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    if (req.query.state) {
+      try {
+        clientUrl = decodeURIComponent(req.query.state as string);
+      } catch (e) {
+        // fallback
+      }
+    }
+
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: `${clientUrl}/login?error=google_auth_failed`,
+    })(req, res, next);
+  },
   asyncHandler(async (req: Request, res: Response) => {
     const user = req.user as IUser;
 
@@ -237,7 +259,15 @@ const googleCallback = [
     if (!session) throw new ApiError(500, "Failed to establish session");
 
     const accessToken = generateAccessToken(user, session._id.toString());
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+
+    let clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    if (req.query.state) {
+      try {
+        clientUrl = decodeURIComponent(req.query.state as string);
+      } catch (e) {
+        // fallback
+      }
+    }
 
     res
       .cookie("accessToken", accessToken, {
