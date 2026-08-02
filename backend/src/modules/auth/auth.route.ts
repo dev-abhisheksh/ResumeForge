@@ -1,6 +1,8 @@
 import express from "express";
 import {
   getMe,
+  googleAuth,
+  googleCallback,
   loginUser,
   logoutUser,
   refreshTokenRotation,
@@ -31,6 +33,9 @@ router.get(
   rateLimiter({ keyPrefix: "auth-refresh", limit: 20, windowSec: 900 }),
   refreshTokenRotation,
 );
+
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
 
 router.post("/logout", logoutUser);
 

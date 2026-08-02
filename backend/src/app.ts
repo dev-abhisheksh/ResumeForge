@@ -11,8 +11,10 @@ import resumeRouter from "./modules/resume/resume.route.js";
 import resumeAnalysisRouter from "./modules/resume-analysis/resume-analysis.route.js";
 import projectRouter from "./modules/project/project.route.js"
 import "./workers/resume.worker.js";
+import passport from "./config/passport.js"
 
 const app = express();
+app.use(passport.initialize());
 
 const allowedOrigins = [
   "http://localhost:3000",

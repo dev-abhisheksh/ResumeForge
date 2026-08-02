@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { LoginBody, RegisterBody } from "../../types/auth.types.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
-import User from "../user/user.model.js";
+import User, { IUser } from "../user/user.model.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -11,6 +11,7 @@ import { cookieOptions } from "../../utils/cookieOptions.js";
 import { hashToken } from "../../utils/hashToken.js";
 import { Session } from "../session/session.model.js";
 import jwt from "jsonwebtoken";
+import passport from "passport";
 
 const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -210,4 +211,49 @@ const getMe = asyncHandler(
   },
 );
 
-export { registerUser, loginUser, logoutUser, refreshTokenRotation, getMe };
+const googleAuth = passport.authenticate("google", {
+  scope: ["profile", "email"]
+})
+
+const googleCallback = [
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login",
+  }),
+  asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user as IUser;
+
+    const refreshToken = generateRefreshToken(user);
+    const refreshTokenHash = hashToken(refreshToken);
+
+    const session = await Session.create({
+      user: user._id,
+      refreshTokenHash,
+      ip: req.ip ?? "Unknown",
+      userAgent: req.headers["user-agent"] ?? "Unknown",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    if (!session) throw new ApiError(500, "Failed to establish session");
+
+    const accessToken = generateAccessToken(user, session._id.toString());
+
+    res
+      .cookie("accessToken", accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .cookie("isLoggedIn", "true", {
+        httpOnly: false,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .redirect(`${process.env.CLIENT_URL}/dashboard`);
+  })
+]
+
+export { registerUser, loginUser, logoutUser, refreshTokenRotation, getMe, googleAuth, googleCallback };
