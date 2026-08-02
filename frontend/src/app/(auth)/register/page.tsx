@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FileCheck, ArrowRight, User, Lock, Mail } from "lucide-react";
 import { useRegister } from "@/hooks/auth/useRegister";
 import { notify } from "@/lib/toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -171,8 +172,17 @@ export default function RegisterPage() {
             disabled={isPending}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm h-11 sm:h-12 border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 mt-1 sm:mt-2"
           >
-            <span>{isPending ? "Creating Account..." : "Create Account"}</span>
-            <ArrowRight className="w-4 h-4" />
+            {isPending ? (
+              <>
+                <Spinner className="w-4 h-4 text-white" />
+                <span>Creating Account...</span>
+              </>
+            ) : (
+              <>
+                <span>Create Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

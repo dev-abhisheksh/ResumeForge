@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FileCheck, ArrowRight, Lock, Mail } from "lucide-react";
 import { useLogin } from "@/hooks/auth/useLogin";
 import { notify } from "@/lib/toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -169,8 +170,17 @@ export default function LoginPage() {
             disabled={isPending}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm h-11 sm:h-12 border-2 border-red-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            <span>{isPending ? "Signing In..." : "Sign In"}</span>
-            <ArrowRight className="w-4 h-4" />
+            {isPending ? (
+              <>
+                <Spinner className="w-4 h-4 text-white" />
+                <span>Signing In...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 
