@@ -64,9 +64,7 @@ export default function LoginPage() {
           <span className="font-extrabold text-xl sm:text-2xl text-slate-900 tracking-tight leading-none">
             Resume<span className="text-red-600">Forge</span>
           </span>
-          <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-black bg-red-600 text-white border border-red-700">
-            PRO
-          </span>
+          
         </div>
       </div>
 
