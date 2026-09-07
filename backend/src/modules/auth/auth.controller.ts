@@ -1,3 +1,7 @@
+import dotenv from "dotenv"
+
+dotenv.config()
+
 import { Request, Response } from "express";
 import { LoginBody, RegisterBody } from "../../types/auth.types.js";
 import asyncHandler from "../../utils/asyncHandler.js";
@@ -12,6 +16,8 @@ import { hashToken } from "../../utils/hashToken.js";
 import { Session } from "../session/session.model.js";
 import jwt from "jsonwebtoken";
 import passport from "passport";
+
+console.log("BRO CHECKING IF IT WORKS PROPERLY",process.env.CLIENT_URL)
 
 const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
